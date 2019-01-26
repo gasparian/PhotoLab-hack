@@ -18,4 +18,4 @@ def upload_file():
     # add your custom code to check that the uploaded file is a valid image and not a malicious file (out-of-scope for this post)
     file.save(f)
 
-    return render_template('index.html')
+    return render_template('index.html', uploaded_success=True, init=True)
