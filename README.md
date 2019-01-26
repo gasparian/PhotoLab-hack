@@ -1,5 +1,5 @@
 # photolab_hack
-findme
+"Find me challenge"
 
 The repository was created for the hackaton PhotoHack. 
 The task is to create the image or video which would be 'virusing' for the people, so that people would share the content. 
