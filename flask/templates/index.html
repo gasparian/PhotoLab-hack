@@ -29,7 +29,7 @@
   border:3px solid #00ff00;
 }
 	.add1 {
-	height: 1000px;
+	height: 2000px;
 	}
 
 </style>
@@ -50,7 +50,7 @@
 </header>
 <div class="jumbotron text-center add1">
 
-	<form action="/upload" method="post" enctype="multipart/form-data" >
+	<form action="/upload_selfie" method="post" enctype="multipart/form-data" >
 			 <input type="file" name="image" class="btn btn-primary">
 		<input type="submit" value="Upload your image" class="btn btn-primary">
 	</form>
@@ -58,7 +58,7 @@
 		
 	<div class="text-center">
 		{% if init %}
-			{% if uploaded_success %}
+			{% if uploaded_selfie_success %}
 				<div class="alert alert-success" style="margin-top:18px;">
 					<strong>Success!</strong> Your image was upload successfully
 				</div>
@@ -70,22 +70,43 @@
 		{% endif %}
 	</div>
 
-	 				 
 
-<div class="container">
-<img id='1' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-<img id='2' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-<img id='3' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-<img id='4' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-<img id='5' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-<img id='6' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-<img id='7' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-<img id='8' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-<img id='9' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-</div>
-<div class='test'></div>
-	<button type="button" class="btn btn-success">Choose!</button>
-</div>
+	<div class="container">
+		<img id='1' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
+		<img id='2' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
+		<img id='3' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
+		<img id='4' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
+		<img id='5' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
+		<img id='6' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
+		<img id='7' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
+		<img id='8' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
+		<img id='9' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
+	</div>
+			
+	<form action="/upload_crowd" method="post" enctype="multipart/form-data" >
+
+		<div class='test'></div>
+			<button id='submit_crowd' type="submit" value="upload" class="btn btn-success" >Choose a picture</button>
+		</div>
+	
+			</form>
+	
+		
+	<div class="text-center">
+		{% if init %}
+			{% if uploaded_crowd_success %}
+				<div class="alert alert-success" style="margin-top:18px;">
+					<strong>Success!</strong> Your image was upload successfully
+				</div>
+			{% else %}
+				<div class="alert alert-danger" style="margin-top:18px;">
+					<strong>Error</strong> Your image was not uploaded!
+				</div>
+			{% endif %}
+		{% endif %}
+	</div>      
+		
+
 
 	<script>
 $(".image").on('click', function(){
@@ -93,9 +114,21 @@ $(".image").on('click', function(){
   $(this).addClass('selected');
   sendToDatabase($(this).attr('id'));
 });
+		
+        $('#submit_crowd').click(function() {
+           var serviceid = document.getElementById("1").value;
+		alert('hoora!');
+           $.post(
+              "/upload_crowd",
+              { serviceid: serviceid }
+           ).done(function (reply) {
+              $('#reply').empty().append(reply);
+           });
+        });
 
 function sendToDatabase(data) {
 	$('.test').text("adding to database element " + data);
+	clicked_id = data; 
 	//$.post(url,{id: data}, function(){
 	//    
 	//});
