@@ -37,6 +37,9 @@
 	.hiding{
 	display: none;
 	}
+	.image_size {
+	width: 70%; 
+	}
 </style>
 	  
 <body>
@@ -67,7 +70,7 @@
 					<div id='selfie_success' class="alert alert-success" style="margin-top:18px;">
 						<strong>Success!</strong> Your image was upload successfully
 					</div>
-				{% elif uploaded_crowd_success or created_success %}
+				{% elif uploaded_crowd_success or created_success or show_answer%}
 					<div >
 					</div>
 				{% else %}
@@ -97,7 +100,7 @@
 					<div id='crowd_success' class="alert alert-success" style="margin-top:18px;">
 						<strong>Success!</strong> Your image was upload successfully
 					</div>
-				{% elif uploaded_selfie_success or 	created_success %}
+				{% elif uploaded_selfie_success or 	created_success or show_answer%}
 					<div >
 					</div>
 				{% else %}
@@ -138,17 +141,40 @@
 					<div id='created_success' class="alert alert-success" style="margin-top:18px;">
 						<strong>Success!</strong> Your image was created successfully
 					</div>
-		<img src="https://pp.userapi.com/Jt06HsyjGGjnvg24ZZY34t3iFGnuEFnHiPeX5w/1zt6QRr8L4g.jpg"  alt="Responsive image">
-				{% elif uploaded_selfie_success %}
-					<div >
-					</div>
-				{% elif uploaded_crowd_success %}
+		<img src="https://pp.userapi.com/Jt06HsyjGGjnvg24ZZY34t3iFGnuEFnHiPeX5w/1zt6QRr8L4g.jpg" class="rounded float-left image_size" >
+<img src="..." class="rounded float-right image_size">
+				{% elif uploaded_selfie_success or show_answer or uploaded_crowd_success %}
 					<div >
 					</div>
 				{% else %}
 					<div id='crowd_fail' class="alert alert-danger" style="margin-top:18px;">
 						<strong>Error</strong> Your image was not created!
 					</div>
+
+		</div>
+
+				{% endif %}
+			{% endif %}
+	</div>
+</div>
+	
+<div class="row empty_row">
+	<div class='col'>
+	</div>
+</div>
+<div class="row">
+	<div class='col'>	 
+			<form action="/show_answer" method="post" enctype="multipart/form-data" >
+				<button type="submit" class="btn btn-primary">Show answer</button>
+			</form>
+		<div class="text-center">
+			{% if init %}
+				{% if show_answer %}
+					<div id='show_answer' class="alert alert-success" style="margin-top:18px;">
+						<strong>Success!</strong> Right location
+					</div>
+		<img src="https://pp.userapi.com/Jt06HsyjGGjnvg24ZZY34t3iFGnuEFnHiPeX5w/1zt6QRr8L4g.jpg" class="rounded float-left image_size" >
+<img src="https://avatars.mds.yandex.net/get-pdb/404799/d8263100-a7a4-4fa0-b877-775ccefbe692/s1200" class="rounded float-right image_size">
 
 		</div>
 
