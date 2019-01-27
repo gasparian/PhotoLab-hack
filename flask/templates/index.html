@@ -31,7 +31,12 @@
 	.add1 {
 	height: 2000px;
 	}
-
+	.empty_row {
+	height: 50px; 
+	}
+	.hiding{
+	display: none;
+	}
 </style>
 	  
 <body>
@@ -40,19 +45,6 @@
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
-<script>
-$(document).ready( function() {
-        $('#submit_crowd').click(function() {
-		var id_selected =	$( "#container_crowd" ).children( ".selected" )[0].id;
-           $.post(
-              "/upload_crowd",
-              { id_selected: id_selected }
-           ).done(function (reply) {
-              $('#reply').empty().append(reply);
-           });
-        });
-  });
-	</script>
 	<div class="header_center">
   <h1 style="font-family:serif;"> Find me challenge
   </h1>
@@ -61,64 +53,111 @@ $(document).ready( function() {
 
 </header>
 <div class="jumbotron text-center add1">
+<div class="row">
+	<div class="col">
+		<form action="/upload_selfie" method="post" enctype="multipart/form-data" >
+				 <input type="file" name="image_selfie" class="btn btn-primary">
+			<input type="submit" value="Upload your image" class="btn btn-primary">
+		</form>
 
-	<form action="/upload_selfie" method="post" enctype="multipart/form-data" >
-			 <input type="file" name="image" class="btn btn-primary">
-		<input type="submit" value="Upload your image" class="btn btn-primary">
-	</form>
-      
-		
-	<div class="text-center">
-		{% if init %}
-			{% if uploaded_selfie_success %}
-				<div class="alert alert-success" style="margin-top:18px;">
-					<strong>Success!</strong> Your image was upload successfully
-				</div>
-			{% else %}
-				<div class="alert alert-danger" style="margin-top:18px;">
-					<strong>Error</strong> Your image was not uploaded!
-				</div>
+
+		<div class="text-center">
+			{% if init %}
+				{% if uploaded_selfie_success %}
+					<div id='selfie_success' class="alert alert-success" style="margin-top:18px;">
+						<strong>Success!</strong> Your image was upload successfully
+					</div>
+				{% elif uploaded_crowd_success or created_success %}
+					<div >
+					</div>
+				{% else %}
+					<div id='selfie_fail' class="alert alert-danger" style="margin-top:18px;">
+						<strong>Error</strong> Your image was not uploaded!
+					</div>
+				{% endif %}
 			{% endif %}
-		{% endif %}
-	</div>
-
-
-	<div class="container"  id="container_crowd" >
-		<img id='1' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-		<img id='2' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-		<img id='3' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-		<img id='4' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-		<img id='5' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-		<img id='6' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-		<img id='7' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-		<img id='8' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-		<img id='9' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
-	</div>
-			
-		<div class='test'></div>
-			<button  id='submit_crowd' type="submit" value="upload" class="btn btn-success" >Choose a picture</button>
 		</div>
+	</div>
+</div>
+<div class="row empty_row">
+	<div class='col'>
+	</div>
+</div>
+<div class="row">
+	<div class='col'>	 
+		<form action="/upload_crowd" method="post" enctype="multipart/form-data" >
+				 <input type="file" name="image_crowd" class="btn btn-primary">
+			<input type="submit" value="Upload your image" class="btn btn-primary">
+		</form>
+
+
+		<div class="text-center">
+			{% if init %}
+				{% if uploaded_crowd_success %}
+					<div id='crowd_success' class="alert alert-success" style="margin-top:18px;">
+						<strong>Success!</strong> Your image was upload successfully
+					</div>
+				{% elif uploaded_selfie_success or 	created_success %}
+					<div >
+					</div>
+				{% else %}
+					<div id='crowd_fail' class="alert alert-danger" style="margin-top:18px;">
+						<strong>Error</strong> Your image was not uploaded!
+					</div>
+				{% endif %}
+			{% endif %}
+		</div>
+	</div>
+</div>
+
+<div class="row empty_row">
+	<div class='col'>
+	</div>
+</div>
+<div class="row">
+	<div class='col'>	 
+			<form action="/create_mix" method="post" enctype="multipart/form-data" >
+			<button type="submit" class="btn btn-primary">Create mix</button>
+		</form>
+
+
+	</div>
+</div>
 	
 		
-		
+<div class="row empty_row">
+	<div class='col'>
+	</div>
+</div>
+<div class="row">
+	<div class='col'>	 
 
+		<div class="text-center">
+			{% if init %}
+				{% if created_success %}
+					<div id='created_success' class="alert alert-success" style="margin-top:18px;">
+						<strong>Success!</strong> Your image was created successfully
+					</div>
+		<img src="https://pp.userapi.com/Jt06HsyjGGjnvg24ZZY34t3iFGnuEFnHiPeX5w/1zt6QRr8L4g.jpg"  alt="Responsive image">
+				{% elif uploaded_selfie_success %}
+					<div >
+					</div>
+				{% elif uploaded_crowd_success %}
+					<div >
+					</div>
+				{% else %}
+					<div id='crowd_fail' class="alert alert-danger" style="margin-top:18px;">
+						<strong>Error</strong> Your image was not created!
+					</div>
 
-	<script>
-$(".image").on('click', function(){
-	$('.image').removeClass('selected');
-  $(this).addClass('selected');
-  sendToDatabase($(this).attr('id'));
-});
-		
+		</div>
 
-
-function sendToDatabase(data) {
-	$('.test').text("adding to database element " + data);
-	clicked_id = data; 
-	//$.post(url,{id: data}, function(){
-	//    
-	//});
-}
-	</script>
+				{% endif %}
+			{% endif %}
+	</div>
+</div>
+	
+	
+	
 </body>
 </html>
