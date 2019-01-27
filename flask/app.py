@@ -2,6 +2,7 @@ import os
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
+app.debug=True
 
 UPLOAD_FOLDER_SELFIE = os.path.basename('uploads')
 UPLOAD_FOLDER_CROWD = os.path.basename('images')
@@ -22,7 +23,8 @@ def upload_file_selfie():
 
     return render_template('index.html', uploaded_selfie_success=True, init=True)
 
-@app.route('/upload_crowd', methods=['POST'])
+@app.route('/upload_crowd', methods=['POST', 'GET'])
 def upload_file_crowd():
-
+    id_selected = request.form.get('id_selected')
+    print('id_selected', id_selected)
     return render_template('index.html', uploaded_crowd_success=True, init=True)
