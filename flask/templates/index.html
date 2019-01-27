@@ -29,7 +29,7 @@
   border:3px solid #00ff00;
 }
 	.add1 {
-	height: 2000px;
+	height: 1500px;
 	}
 	.empty_row {
 	height: 50px; 
@@ -112,7 +112,20 @@
 		</div>
 	</div>
 </div>
+					{% if created_success %}
+<div class="row empty_row">
+	<div class='col'>
+	</div>
+</div>
+<div class="row">
+	<div class='col'>	
 
+		<form action="/show_answer" method="post" enctype="multipart/form-data" >
+			<button type="submit" class="btn btn-primary">Show answer</button>
+		</form>
+	</div>
+</div>
+						{% else %}
 <div class="row empty_row">
 	<div class='col'>
 	</div>
@@ -122,10 +135,10 @@
 			<form action="/create_mix" method="post" enctype="multipart/form-data" >
 			<button type="submit" class="btn btn-primary">Create mix</button>
 		</form>
-
-
 	</div>
 </div>
+						{% endif %}
+
 	
 		
 <div class="row empty_row">
@@ -141,8 +154,12 @@
 					<div id='created_success' class="alert alert-success" style="margin-top:18px;">
 						<strong>Success!</strong> Your image was created successfully
 					</div>
-		<img src="https://pp.userapi.com/Jt06HsyjGGjnvg24ZZY34t3iFGnuEFnHiPeX5w/1zt6QRr8L4g.jpg" class="rounded float-left image_size" >
-<img src="..." class="rounded float-right image_size">
+		<img src="https://pp.userapi.com/Jt06HsyjGGjnvg24ZZY34t3iFGnuEFnHiPeX5w/1zt6QRr8L4g.jpg" class="rounded image_size" >
+				{% elif show_answer %}
+					<div id='created_success' class="alert alert-success" style="margin-top:18px;">
+					Right answer
+					</div>
+		<img src="https://avatars.mds.yandex.net/get-pdb/404799/d8263100-a7a4-4fa0-b877-775ccefbe692/s1200" class="rounded image_size" >
 				{% elif uploaded_selfie_success or show_answer or uploaded_crowd_success %}
 					<div >
 					</div>
@@ -158,32 +175,7 @@
 	</div>
 </div>
 	
-<div class="row empty_row">
-	<div class='col'>
-	</div>
-</div>
-<div class="row">
-	<div class='col'>	 
-			<form action="/show_answer" method="post" enctype="multipart/form-data" >
-				<button type="submit" class="btn btn-primary">Show answer</button>
-			</form>
-		<div class="text-center">
-			{% if init %}
-				{% if show_answer %}
-					<div id='show_answer' class="alert alert-success" style="margin-top:18px;">
-						<strong>Success!</strong> Right location
-					</div>
-		<img src="https://pp.userapi.com/Jt06HsyjGGjnvg24ZZY34t3iFGnuEFnHiPeX5w/1zt6QRr8L4g.jpg" class="rounded float-left image_size" >
-<img src="https://avatars.mds.yandex.net/get-pdb/404799/d8263100-a7a4-4fa0-b877-775ccefbe692/s1200" class="rounded float-right image_size">
 
-		</div>
-
-				{% endif %}
-			{% endif %}
-	</div>
-</div>
-	
-	
 	
 </body>
 </html>
