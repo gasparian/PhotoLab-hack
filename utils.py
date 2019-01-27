@@ -12,7 +12,7 @@ from face_swap import warp_image_2d, warp_image_3d, mask_from_points, apply_mask
 from TYY_model import TYY_2stream,TYY_1stream
 
 def open_img(name, scale=1.):
-    img = cv2.imread(os.path.join(path, name))
+    img = cv2.imread(name)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = cv2.resize(img, (int(img.shape[1]*scale), int(img.shape[0]*scale)), Image.LANCZOS)
     return img

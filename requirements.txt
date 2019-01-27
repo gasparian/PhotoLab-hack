@@ -1,7 +1,3 @@
-numpy==1.14.13
-scipy==1.0.1
 dlib==19.16.0
-tensorflow==1.8.0
-keras==2.2.2
-python-opencv==3.4.3
-PIL==5.1.0
+flask==1.0.2
+gunicorn==19.9.0
