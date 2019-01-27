@@ -37,10 +37,22 @@
 <body>
 <header class="navbar navbar-default">
 
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
-	<script src="js/script.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script>
+$(document).ready( function() {
+        $('#submit_crowd').click(function() {
+		var id_selected =	$( "#container_crowd" ).children( ".selected" )[0].id;
+           $.post(
+              "/upload_crowd",
+              { id_selected: id_selected }
+           ).done(function (reply) {
+              $('#reply').empty().append(reply);
+           });
+        });
+  });
+	</script>
 	<div class="header_center">
   <h1 style="font-family:serif;"> Find me challenge
   </h1>
@@ -83,28 +95,11 @@
 		<img id='9' class="image" src="http://ww1.prweb.com/prfiles/2014/04/10/11752526/gI_134971_best-image-web-hosting.png">
 	</div>
 			
-	<form action="/upload_crowd" method="post" enctype="multipart/form-data" >
-
 		<div class='test'></div>
-			<button id='submit_crowd' type="submit" value="upload" class="btn btn-success" >Choose a picture</button>
+			<button  id='submit_crowd' type="submit" value="upload" class="btn btn-success" >Choose a picture</button>
 		</div>
 	
-			</form>
-	
 		
-	<div class="text-center">
-		{% if init %}
-			{% if uploaded_crowd_success %}
-				<div class="alert alert-success" style="margin-top:18px;">
-					<strong>Success!</strong> Your image was upload successfully
-				</div>
-			{% else %}
-				<div class="alert alert-danger" style="margin-top:18px;">
-					<strong>Error</strong> Your image was not uploaded!
-				</div>
-			{% endif %}
-		{% endif %}
-	</div>      
 		
 
 
