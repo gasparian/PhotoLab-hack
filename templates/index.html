@@ -154,12 +154,12 @@
 					<div id='created_success' class="alert alert-success" style="margin-top:18px;">
 						<strong>Success!</strong> Your image was created successfully
 					</div>
-		<img src="{{url_for('static', filename='result.jpeg')}}" class="rounded image_size" >
+		<img src="{{result_filename}}" class="rounded image_size" >
 				{% elif show_answer %}
 					<div id='created_success' class="alert alert-success" style="margin-top:18px;">
 					Right answer
 					</div>
-		<img src="{{url_for('static', filename='answer.jpeg')}}" class="rounded image_size" >
+		<img src="{{answer_filename}}" class="rounded image_size" >
 				{% elif uploaded_selfie_success or show_answer or uploaded_crowd_success %}
 					<div >
 					</div>

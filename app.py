@@ -1,9 +1,11 @@
 import os
 import re
 import gc
+import time
+import random
 from shutil import rmtree
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 import dlib
 from PIL import Image
@@ -161,7 +163,7 @@ def run_detector(DST_FACES, SRC_FACES, VALID_IDXS, crowd):
             output, output_labeled = insert_face(DST_FACES, SRC_FACES, VALID_IDXS, crowd)
             break
         except:
-            output, output_labeled = run_detector(DST_FACES, SRC_FACES, VALID_IDXS)
+            output, output_labeled = run_detector(DST_FACES, SRC_FACES, VALID_IDXS, crowd)
     return output, output_labeled
 
 def crossdomain(origin=None, methods=None, headers=None,
@@ -275,15 +277,14 @@ def upload_create_mix():
     file_selfie = os.path.join(app.config['UPLOAD_FOLDER_SELFIE'], file_selfie_str)
     file_crowd = os.path.join(app.config['UPLOAD_FOLDER_CROWD'], file_crowd_str)
 
-    
+    start = time.time() 
     me = np.array(Image.open(file_selfie))
     crowd = np.array(Image.open(file_crowd))
     me = open_img(me, scale=0.15)
-    me = np.rot90(me)
+    #me = np.rot90(me)
     crowd = open_img(crowd) 
-    #crowd = np.rot90(crowd)
 
-    print("\n", crowd.shape, "\n")
+    #print("\n", crowd.shape, "\n")
 
     #main computing
     #im = im_crowd
@@ -307,6 +308,8 @@ def upload_create_mix():
 
     output, output_labeled = run_detector(DST_FACES, SRC_FACES, VALID_IDXS, crowd)
 
+    print(f" [INFO] Time consumed:  {int(time.time() - start) * 1000} ms. ")
+
     # save answer
     file = os.path.join(app.config['UPLOAD_FOLDER_MIX'])
     if not os.path.exists(file):
@@ -323,11 +326,15 @@ def upload_create_mix():
         os.makedirs(file_answer)
     cv2.imwrite(file_answer + "/answer.jpeg", output_labeled)
 
-    return render_template('index.html', created_success=True, init=True)
+    result_filename = url_for('static', filename='result.jpeg') + '?rnd=' + str(random.randint(0, 10e9))
+    return render_template('index.html', created_success=True, init=True,
+                           result_filename=result_filename)
 
 @app.route('/show_answer',  methods=['GET', 'POST'])
 def show_answer():
-    return render_template('index.html', show_answer=True, init=True)
+    answer_filename = url_for('static', filename='answer.jpeg') + '?rnd=' + str(random.randint(0, 10e9))
+    return render_template('index.html', show_answer=True, init=True,
+                           answer_filename=answer_filename)
 
 
 @app.route('/', methods=['GET'])
