@@ -4,8 +4,6 @@ import gc
 import time
 import random
 from shutil import rmtree
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
 import dlib
 from PIL import Image
@@ -13,51 +11,31 @@ import numpy as np
 #import matplotlib.pyplot as plt
 #%matplotlib inline
 
-from face_swap import warp_image_2d, warp_image_3d, mask_from_points, apply_mask, correct_colours, transformation_from_points
-from TYY_model import TYY_2stream,TYY_1stream
+from face_swap import warp_image_2d, warp_image_3d, mask_from_points, \
+                      apply_mask, correct_colours, transformation_from_points
 
 from flask import Flask, render_template, request, send_file, url_for
-#from flask.ext.cache import Cache
 from PIL import Image
 from datetime import timedelta
 from functools import update_wrapper
-import numpy as np
 
+import numpy as np
 import cv2
+from scipy.spatial import distance
 #from utils import *
 
-def open_img(img, scale=1.):
-    #img = cv2.imread(name)
+def open_img(img, biggest=400):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    scale = biggest / max(img.shape[:-1]) 
     img = cv2.resize(img, (int(img.shape[1]*scale), int(img.shape[0]*scale)), Image.LANCZOS)
     return img
-
-def show_img(img, figsize=(7, 14)):
-    plt.figure(figsize=figsize)
-    plt.imshow(img)
-    plt.show()
-
-def crop_face(img, bboxs, offset=10):
-    imgs = []
-    for bbox in bboxs:
-        x = bbox[0] 
-        y = bbox[1]
-        w = bbox[2] - x
-        h = bbox[3] - y
-
-        x = max(x - offset//2, 0)
-        y = max(y - offset//2, 0)
-        w = min(img.shape[0], w + offset)
-        h = min(img.shape[1], h + offset)
-        imgs.append(img[y:y+h, x:x+w])
-    return imgs
 
 def face_detection(img):
     # Ask the detector to find the bounding boxes of each face. The 1 in the
     # second argument indicates that we should upsample the image 1 time. This
     # will make everything bigger and allow us to detect more faces.
     detector = dlib.get_frontal_face_detector()
-    faces = detector(img, 0)
+    faces = detector(img, 1)
     bboxs = []
 
     for face in faces:
@@ -76,7 +54,8 @@ def face_points_detection(img, bbox):
     # return the list of (x, y)-coordinates
     return coords
 
-def select_faces(im, points, r=10):
+def select_faces(im, bbox, r=10):
+    points = face_points_detection(im, dlib.rectangle(*bbox))
     im_w, im_h = im.shape[:2]
     left, top = np.min(points, 0)
     right, bottom = np.max(points, 0)
@@ -86,31 +65,41 @@ def select_faces(im, points, r=10):
 
     return points - np.asarray([[x, y]]), (x, y, w, h), im[y:y+h, x:x+w]
 
-def preprocess_img(img, r=10):
-    bboxs = face_detection(img)
-    results = []
+def calc_dist(img0, img1):
+    return distance.euclidean(img0, img1)
+
+def preprocess_img(me, crowd, *args):
+    
+    # args is points on the faces to be swapped (selfies / friends photos)
+
+    my_bboxs = face_detection(me)
+    bboxs = np.array(face_detection(crowd))
+    random_sample = np.random.choice(list(range(len(bboxs))), size=25)
+    if len(random_sample) < len(bboxs):
+        bboxs = bboxs[random_sample]
+    src_face_descriptor = facerec.compute_face_descriptor(me, 
+                          sp(me, dlib.rectangle(*my_bboxs[0])), 20)
+    clst, i = (0, np.inf), 0
     for bbox in bboxs:
-        points = face_points_detection(img, dlib.rectangle(*bbox))
-        results.append(select_faces(img, points, r))
-    return results
+        face_descriptor = facerec.compute_face_descriptor(crowd, 
+                           sp(crowd, dlib.rectangle(*bbox)), 20)
+        dst = calc_dist(src_face_descriptor, face_descriptor)
+        if dst < clst[1]:
+            clst = (i, dst)
+        i += 1
+    return { "dst" : select_faces(crowd, bboxs[clst[0]]),
+             "src" : select_faces(me, my_bboxs[0]) }
 
-def get_age_gender(img):
-    input_ = cv2.resize(img, (IMG_SIZE, IMG_SIZE), Image.LANCZOS)
-    results = model.predict(np.expand_dims(input_, axis=0))
-    predicted_genders = results[0]
-    ages = np.arange(0, 21).reshape(21, 1)
-    predicted_ages = results[1].dot(ages).flatten()
-    return "F" if predicted_genders[0][0] > .6 else "M", predicted_ages[0]
-
-def insert_face(dst_faces, src_faces, valid_idxs, crowd):
+def insert_face(me, crowd):
     
-    n = np.random.choice(valid_idxs)
-    dst_points, dst_shape, dst_face = dst_faces[n]
-    src_points, src_shape, src_face = src_faces[0]
+    result = preprocess_img(me, crowd)
+    dst_points, dst_shape, dst_face = result["dst"]
+    src_points, src_shape, src_face = result["src"]
+    del result; gc.collect()
     
-    warp_2d = True
+    warp_2d = False
     correct_color = True
-    max_points = 68
+    max_points = 58
     
     w, h = dst_face.shape[:2]
 
@@ -155,15 +144,6 @@ def insert_face(dst_faces, src_faces, valid_idxs, crowd):
     output_labeled = output.copy()
     cv2.rectangle(output_labeled, (x, y), (x+w, y+h), (255,0,0), 2)
     
-    return output, output_labeled
-
-def run_detector(DST_FACES, SRC_FACES, VALID_IDXS, crowd):
-    while True:
-        try:
-            output, output_labeled = insert_face(DST_FACES, SRC_FACES, VALID_IDXS, crowd)
-            break
-        except:
-            output, output_labeled = run_detector(DST_FACES, SRC_FACES, VALID_IDXS, crowd)
     return output, output_labeled
 
 def crossdomain(origin=None, methods=None, headers=None,
@@ -211,17 +191,14 @@ def crossdomain(origin=None, methods=None, headers=None,
     return decorator
 
 #load trained models
-PREDICTOR_PATH = 'models/shape_predictor_68_face_landmarks.dat'
-predictor = dlib.shape_predictor(PREDICTOR_PATH)
-
-IMG_SIZE = 64
-model = TYY_1stream(IMG_SIZE)()
-model.load_weights(os.path.join("models", "TYY_1stream.h5"))
-print(" [INFO] Models loaded! ")
+# face landmarks
+predictor = dlib.shape_predictor('./models/shape_predictor_68_face_landmarks.dat')
+# dlib face recognition
+sp = dlib.shape_predictor("./models/shape_predictor_5_face_landmarks.dat")
+facerec = dlib.face_recognition_model_v1("./models/dlib_face_recognition_resnet_model_v1.dat")
 
 app = Flask(__name__)
 app.debug=True
-app.config["CACHE_TYPE"] = "null"
 
 UPLOAD_FOLDER_SELFIE = os.path.basename('images_selfie')
 UPLOAD_FOLDER_CROWD = os.path.basename('images_crowd')
@@ -231,6 +208,8 @@ app.config['UPLOAD_FOLDER_SELFIE'] = UPLOAD_FOLDER_SELFIE
 app.config['UPLOAD_FOLDER_CROWD'] = UPLOAD_FOLDER_CROWD
 app.config['UPLOAD_FOLDER_MIX'] = UPLOAD_FOLDER_MIX
 app.config['UPLOAD_FOLDER_ANSWER'] = UPLOAD_FOLDER_ANSWER
+
+print(" [INFO] Server loaded! ")
 
 @app.route('/')
 def hello_world():
@@ -280,33 +259,16 @@ def upload_create_mix():
     start = time.time() 
     me = np.array(Image.open(file_selfie))
     crowd = np.array(Image.open(file_crowd))
-    me = open_img(me, scale=0.15)
-    #me = np.rot90(me)
-    crowd = open_img(crowd) 
+    me = open_img(me, biggest=400)
 
-    #print("\n", crowd.shape, "\n")
+    # hack; must be deleted
+    if me.shape[0] < me.shape[1]: 
+        me = np.rot90(me)
 
-    #main computing
-    #im = im_crowd
-    DST_FACES = preprocess_img(crowd, r=10)
-    SRC_FACES = preprocess_img(me, r=10)
+    crowd = open_img(crowd, biggest=1200) 
 
-    bboxs = face_detection(crowd)
-    crops = crop_face(crowd, bboxs, offset=10)
-
-    bboxs = face_detection(me)
-    src_crop = crop_face(me, bboxs, offset=10)[0]
-    src_gender, src_age = get_age_gender(src_crop)  
-    VALID_IDXS = []
-
-    for i, crop in enumerate(crops):
-        gender, age = get_age_gender(crop)
-        if gender == src_gender and ((src_age - 2) <= age <= (src_age + 2)):
-            VALID_IDXS.append(i)
-    if len(VALID_IDXS) == 0:
-        VALID_IDXS = list(range(len(crops)))
-
-    output, output_labeled = run_detector(DST_FACES, SRC_FACES, VALID_IDXS, crowd)
+    #main 
+    output, output_labeled = insert_face(me, crowd)
 
     print(f" [INFO] Time consumed:  {int(time.time() - start) * 1000} ms. ")
 
