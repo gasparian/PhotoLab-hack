@@ -30,6 +30,11 @@ def open_img(img, biggest=400):
     img = cv2.resize(img, (int(img.shape[1]*scale), int(img.shape[0]*scale)), Image.LANCZOS)
     return img
 
+def read_file_buffer(f):
+    img = f.read()
+    img = np.fromstring(img, np.uint8)
+    return cv2.imdecode(img, cv2.IMREAD_COLOR)
+
 def face_detection(img):
     # Ask the detector to find the bounding boxes of each face. The 1 in the
     # second argument indicates that we should upsample the image 1 time. This
@@ -45,7 +50,7 @@ def face_detection(img):
 
 def face_points_detection(img, bbox):
     # Get the landmarks/parts for the face in box d.
-    shape = predictor(img, bbox)
+    shape = PREDICTOR(img, bbox)
 
     # loop over the 68 facial landmarks and convert them
     # to a 2-tuple of (x, y)-coordinates
@@ -68,38 +73,38 @@ def select_faces(im, bbox, r=10):
 def calc_dist(img0, img1):
     return distance.euclidean(img0, img1)
 
-def preprocess_img(me, crowd, *args):
+def preprocess_img(*args):
     
     # args is points on the faces to be swapped (selfies / friends photos)
 
-    my_bboxs = face_detection(me)
-    bboxs = np.array(face_detection(crowd))
+    my_bboxs = face_detection(ME)
+    bboxs = np.array(face_detection(CROWD))
     random_sample = np.random.choice(list(range(len(bboxs))), size=25)
     if len(random_sample) < len(bboxs):
         bboxs = bboxs[random_sample]
-    src_face_descriptor = facerec.compute_face_descriptor(me, 
-                          sp(me, dlib.rectangle(*my_bboxs[0])), 20)
+    src_face_descriptor = FACEREC.compute_face_descriptor(ME, 
+                          SP(ME, dlib.rectangle(*my_bboxs[0])), 20)
     clst, i = (0, np.inf), 0
     for bbox in bboxs:
-        face_descriptor = facerec.compute_face_descriptor(crowd, 
-                           sp(crowd, dlib.rectangle(*bbox)), 20)
+        face_descriptor = FACEREC.compute_face_descriptor(CROWD, 
+                           SP(CROWD, dlib.rectangle(*bbox)), 20)
         dst = calc_dist(src_face_descriptor, face_descriptor)
         if dst < clst[1]:
             clst = (i, dst)
         i += 1
-    return { "dst" : select_faces(crowd, bboxs[clst[0]]),
-             "src" : select_faces(me, my_bboxs[0]) }
+    return { "dst" : select_faces(CROWD, bboxs[clst[0]]),
+             "src" : select_faces(ME, my_bboxs[0]) }
 
-def insert_face(me, crowd):
+def insert_face():
     
-    result = preprocess_img(me, crowd)
+    result = preprocess_img()
     dst_points, dst_shape, dst_face = result["dst"]
     src_points, src_shape, src_face = result["src"]
     del result; gc.collect()
     
     warp_2d = False
     correct_color = True
-    max_points = 58
+    max_points = 68
     
     w, h = dst_face.shape[:2]
 
@@ -136,7 +141,7 @@ def insert_face(me, crowd):
     output = cv2.seamlessClone(warped_src_face, dst_face, mask, center, cv2.NORMAL_CLONE)
 
     x, y, w, h = dst_shape
-    dst_img_cp = crowd.copy()
+    dst_img_cp = CROWD.copy()
     dst_img_cp[y:y+h, x:x+w] = output
     new_output = output.copy()
     output = dst_img_cp
@@ -192,22 +197,14 @@ def crossdomain(origin=None, methods=None, headers=None,
 
 #load trained models
 # face landmarks
-predictor = dlib.shape_predictor('./models/shape_predictor_68_face_landmarks.dat')
+PREDICTOR = dlib.shape_predictor('./models/shape_predictor_68_face_landmarks.dat')
 # dlib face recognition
-sp = dlib.shape_predictor("./models/shape_predictor_5_face_landmarks.dat")
-facerec = dlib.face_recognition_model_v1("./models/dlib_face_recognition_resnet_model_v1.dat")
+SP = dlib.shape_predictor("./models/shape_predictor_5_face_landmarks.dat")
+FACEREC = dlib.face_recognition_model_v1("./models/dlib_face_recognition_resnet_model_v1.dat")
 
 app = Flask(__name__)
 app.debug=True
-
-UPLOAD_FOLDER_SELFIE = os.path.basename('images_selfie')
-UPLOAD_FOLDER_CROWD = os.path.basename('images_crowd')
-UPLOAD_FOLDER_MIX = os.path.basename('static')
-UPLOAD_FOLDER_ANSWER = os.path.basename('static')
-app.config['UPLOAD_FOLDER_SELFIE'] = UPLOAD_FOLDER_SELFIE
-app.config['UPLOAD_FOLDER_CROWD'] = UPLOAD_FOLDER_CROWD
-app.config['UPLOAD_FOLDER_MIX'] = UPLOAD_FOLDER_MIX
-app.config['UPLOAD_FOLDER_ANSWER'] = UPLOAD_FOLDER_ANSWER
+app.config['UPLOAD_FOLDER'] = os.path.basename('static')
 
 print(" [INFO] Server loaded! ")
 
@@ -217,76 +214,56 @@ def hello_world():
 
 @app.route('/upload_selfie', methods=['POST'])
 def upload_file_selfie():
-    file = request.files['image_selfie']
-    if not os.path.exists(app.config['UPLOAD_FOLDER_SELFIE']):
-        os.makedirs(app.config['UPLOAD_FOLDER_SELFIE'])
-    f = os.path.join(app.config['UPLOAD_FOLDER_SELFIE'], file.filename)
-    # add your custom code to check that the uploaded file is a valid image and not a malicious file (out-of-scope for this post)
-    file.save(f)
-    #cv2.imwrite(f, np.array(file))    
 
-    file_for_save = open("file_selfie.txt","w")
-    file_for_save.write(file.filename)
-    file_for_save.close()
+    file = request.files['image_selfie']
+    global ME
+    ME = read_file_buffer(file) 
+
     return render_template('index.html', uploaded_selfie_success=True, init=True)
 
 @app.route('/upload_crowd',  methods=['GET', 'POST'])
 def upload_file_crowd():
+    
     file = request.files['image_crowd']
-    if not os.path.exists(app.config['UPLOAD_FOLDER_CROWD']):
-        os.makedirs(app.config['UPLOAD_FOLDER_CROWD'])
-    f = os.path.join(app.config['UPLOAD_FOLDER_CROWD'], file.filename)
-    # add your custom code to check that the uploaded file is a valid image and not a malicious file (out-of-scope for this post)
-    file.save(f)
-    #cv2.imwrite(f, np.array(file))    
-
-    file_for_save = open("file_crowd.txt","w")
-    file_for_save.write(file.filename)
-    file_for_save.close()
+    global CROWD
+    CROWD = read_file_buffer(file)
+     
     return render_template('index.html', uploaded_crowd_success=True, init=True)
 
 @app.route('/create_mix',  methods=['GET', 'POST'])
 def upload_create_mix():
-    file_saved_selfie = open("file_selfie.txt","r")
-    file_selfie_str = str(file_saved_selfie.readline())
-    file_saved_selfie.close()
-    file_saved_crowd = open("file_crowd.txt","r")
-    file_crowd_str = str(file_saved_crowd.readline())
-    file_saved_crowd.close()
-    file_selfie = os.path.join(app.config['UPLOAD_FOLDER_SELFIE'], file_selfie_str)
-    file_crowd = os.path.join(app.config['UPLOAD_FOLDER_CROWD'], file_crowd_str)
+
+    global ME, CROWD;
 
     start = time.time() 
-    me = np.array(Image.open(file_selfie))
-    crowd = np.array(Image.open(file_crowd))
-    me = open_img(me, biggest=400)
+    ME = open_img(ME, biggest=400)
 
     # hack; must be deleted
-    if me.shape[0] < me.shape[1]: 
-        me = np.rot90(me)
+    if ME.shape[0] < ME.shape[1]: 
+        ME = np.rot90(ME) 
+    print(f" [INFO] Selfie loaded with shape: {ME.shape} ")
 
-    crowd = open_img(crowd, biggest=1200) 
+    old_shape = CROWD.shape[:-1][::-1]
+    CROWD = open_img(CROWD, biggest=1200) 
+    print(f" [INFO] Crowd loaded with shape: {CROWD.shape} ")
 
     #main 
-    output, output_labeled = insert_face(me, crowd)
+    output, output_labeled = insert_face()
+    output = cv2.resize(output, old_shape, Image.LANCZOS)
+    output_labeled = cv2.resize(output_labeled, old_shape, Image.LANCZOS)
 
     print(f" [INFO] Time consumed:  {int(time.time() - start) * 1000} ms. ")
 
-    # save answer
-    file = os.path.join(app.config['UPLOAD_FOLDER_MIX'])
+    file = os.path.join(app.config['UPLOAD_FOLDER'])
     if not os.path.exists(file):
         os.makedirs(file)
-    else:
-        rmtree("./static/")
-        os.makedirs(file)
-
-    cv2.imwrite(file + "/result.jpeg", output)
-
+    # save answer 
+    cv2.imwrite(file + "/result.jpeg", cv2.cvtColor(output, cv2.COLOR_RGB2BGR))
     # save labeled answer
-    file_answer = os.path.join(app.config['UPLOAD_FOLDER_ANSWER'])
-    if not os.path.exists(file_answer):
-        os.makedirs(file_answer)
-    cv2.imwrite(file_answer + "/answer.jpeg", output_labeled)
+    cv2.imwrite(file + "/answer.jpeg", cv2.cvtColor(output_labeled, cv2.COLOR_RGB2BGR))
+
+    # update globals
+    ME = None; CROWD = None
 
     result_filename = url_for('static', filename='result.jpeg') + '?rnd=' + str(random.randint(0, 10e9))
     return render_template('index.html', created_success=True, init=True,
