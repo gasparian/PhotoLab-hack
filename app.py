@@ -4,18 +4,14 @@ import gc
 import time
 import random
 from shutil import rmtree
+import multiprocessing
 
 import dlib
-from PIL import Image
-import numpy as np
-#import matplotlib.pyplot as plt
-#%matplotlib inline
-
 from face_swap import warp_image_2d, warp_image_3d, mask_from_points, \
                       apply_mask, correct_colours, transformation_from_points
 
 from flask import Flask, render_template, request, send_file, url_for
-from PIL import Image
+from PIL import Image, ExifTags
 from datetime import timedelta
 from functools import update_wrapper
 
@@ -73,51 +69,97 @@ def select_faces(im, bbox, r=10):
 def calc_dist(img0, img1):
     return distance.euclidean(img0, img1)
 
-def preprocess_img(max_dst_boxes=25, embeddings_max_iters=20, *args):
-    my_bboxs = np.array(face_detection(ME))
-    
-    # args is points on the faces to be swapped (selfies / friends photos)
-    if args:
-        to_keep = []
-        for arg in args:
-            for j, bbox in enumerate(my_bboxs):
-                if (bbox[0] <= arg[0] <= bbox[2]) and \
-                   (bbox[1] <= arg[1] <= bbox[3]):
-                        to_keep.append(j)
-        my_bboxs = my_bboxs[to_keep]
-            
-    bboxs = np.array(face_detection(CROWD))
-    if len(bboxs) == 0 or len(my_bboxs) == 0:
-        return None
-    
-    random_sample_bboxs = np.random.choice(list(range(len(bboxs))), size=min(len(bboxs), max_dst_boxes))
-    random_sample_my_bboxs = np.random.choice(list(range(len(my_bboxs))), size=min(len(my_bboxs), max_dst_boxes))
-    
-    if len(random_sample_bboxs) < len(bboxs):
-        bboxs = bboxs[random_sample]
-        
-    if len(random_sample_my_bboxs) < len(my_bboxs):
-        my_bboxs = my_bboxs[random_sample]
+def chunker(l, n):
+    length = len(l)
+    n = length // n
+    for i in range(0, length, n):
+        if length - i < 2*n:
+            yield l[i:]
+            break
+        else:
+            yield l[i:i + n]
 
-    out, ignore_list = [], []
-    for i in range(len(my_bboxs)):
-        src_face_descriptor = FACEREC.compute_face_descriptor(ME, 
-                              SP(ME, dlib.rectangle(*my_bboxs[i])), embeddings_max_iters)
-        dsts = np.full(len(bboxs), np.inf)
-        for j, bbox in enumerate(bboxs):
-            if j in ignore_list:
+class preprocess_img:
+
+    @classmethod
+    def run(self, max_dst_boxes=25, embeddings_max_iters=2, n_jobs=2, *args):
+        
+        self.embeddings_max_iters = embeddings_max_iters
+        my_bboxs = np.array(face_detection(ME))
+        
+        # args is points on the faces to be swapped (selfies / friends photos)
+        if args:
+            to_keep = []
+            for arg in args:
+                for j, bbox in enumerate(my_bboxs):
+                    if (bbox[0] <= arg[0] <= bbox[2]) and \
+                       (bbox[1] <= arg[1] <= bbox[3]):
+                            to_keep.append(j)
+            my_bboxs = my_bboxs[to_keep]
+
+        self.bboxs = np.array(face_detection(CROWD))
+        if len(self.bboxs) == 0 or len(my_bboxs) == 0:
+            return None
+
+        random_sample_bboxs = np.random.choice(list(range(len(self.bboxs))), 
+                                               size=min(len(self.bboxs), max_dst_boxes))
+        random_sample_my_bboxs = np.random.choice(list(range(len(my_bboxs))), 
+                                               size=min(len(my_bboxs), max_dst_boxes))
+
+        if len(random_sample_bboxs) < len(self.bboxs):
+            self.bboxs = self.bboxs[random_sample_bboxs]
+
+        if len(random_sample_my_bboxs) < len(my_bboxs):
+            my_bboxs = my_bboxs[random_sample_my_bboxs]
+
+        if len(self.bboxs) < 2:
+            n_jobs = 1
+            
+        out, self.ignore_list = [], []
+        for i in range(len(my_bboxs)):
+            self.src_face_descriptor = FACEREC.compute_face_descriptor(ME, 
+                                  SP(ME, dlib.rectangle(*my_bboxs[i])), embeddings_max_iters)
+
+            if n_jobs == 1:
+                dsts = np.full(len(bboxs), np.inf)
+                for j, bbox in enumerate(bboxs):
+                    if j in ignore_list:
+                        continue
+                    face_descriptor = FACEREC.compute_face_descriptor(CROWD,
+                                      SP(CROWD, dlib.rectangle(*bbox)), embeddings_max_iters)
+                    dsts[j] = calc_dist(src_face_descriptor, face_descriptor)
+            else:
+                manager = multiprocessing.Manager()
+                pool = multiprocessing.Pool(n_jobs)
+                res = manager.list([0] * n_jobs)
+                chunks = list(chunker(list(range(len(self.bboxs))), n_jobs))
+                pool.map(self.run_comparison, [(j, chunks[j], res) for j in range(n_jobs)])
+                dsts = np.concatenate([res[j] for j in range(n_jobs)], axis=0)
+                pool.close()
+                gc.collect()
+
+            #clst = np.random.choice(np.argsort(dsts)[:2])
+            clst = np.argmin(dsts)
+            self.ignore_list.append(clst)
+            out.append((select_faces(CROWD, self.bboxs[clst]), select_faces(ME, my_bboxs[i])))
+        return out
+    
+    @classmethod
+    def run_comparison(self, args):
+        k, chunk, res = args
+        dsts = np.full(len(chunk), np.inf)
+        for l, m in enumerate(chunk):
+            if m in self.ignore_list:
                 continue
             face_descriptor = FACEREC.compute_face_descriptor(CROWD,
-                              SP(CROWD, dlib.rectangle(*bbox)), embeddings_max_iters)
-            dsts[j] = calc_dist(src_face_descriptor, face_descriptor)
-        clst = np.random.choice(np.argsort(dsts)[:2])
-        ignore_list.append(clst)
-        out.append((select_faces(CROWD, bboxs[clst]), select_faces(ME, my_bboxs[i])))
-    return out
+                              SP(CROWD, dlib.rectangle(*self.bboxs[m])), self.embeddings_max_iters)
+            dsts[l] = calc_dist(self.src_face_descriptor, face_descriptor)
+        res[k] = dsts
+        del dsts; gc.collect()
 
 def insert_face():
     
-    result = preprocess_img()
+    result = preprocess_img.run()
     if result is None:
         return None
     
@@ -240,11 +282,38 @@ print(" [INFO] Server loaded! ")
 def hello_world():
     return render_template('index.html')
 
+def read_image_exif(stream):
+    image=Image.open(stream)
+
+    try: 
+        for orientation in ExifTags.TAGS.keys():
+            if ExifTags.TAGS[orientation]=='Orientation':
+                break
+        exif=dict(image._getexif().items())
+
+        if exif[orientation] == 3:
+            image=image.rotate(180, expand=True)
+        elif exif[orientation] == 6:
+            image=image.rotate(270, expand=True)
+        elif exif[orientation] == 8:
+            image=image.rotate(90, expand=True)
+
+        # convert to opencv format
+        cv_image = np.array(image.convert('RGB'))
+        image.close()
+        cv_image = cv_image[:, :, ::-1].copy()
+        return cv_image
+
+    except (AttributeError, KeyError, IndexError):
+        # cases: image don't have getexif
+        image.close()
+        return image
+
 @app.route('/upload_selfie', methods=['POST'])
 def upload_file_selfie():
-    file = request.files['image_selfie']
     global ME
-    ME = read_file_buffer(file) 
+    ME = read_image_exif(request.files['image_selfie'].stream)
+
     print(f" [INFO] Selfie loaded with shape: {ME.shape} ")
     return render_template('index.html', uploaded_selfie_success=True, init=True)
 
@@ -262,10 +331,10 @@ def upload_create_mix():
     global ME, CROWD;
 
     start = time.time() 
-    ME = open_img(ME, biggest=1200)
+    ME = open_img(ME, biggest=400)
 
     old_shape = CROWD.shape[:-1][::-1]
-    CROWD = open_img(CROWD, biggest=1200) 
+    CROWD = open_img(CROWD, biggest=1000) 
 
     #mix 
     output_labeled = insert_face()
