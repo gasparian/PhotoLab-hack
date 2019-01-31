@@ -1,6 +1,6 @@
-/data/
-/static/
-/images_crowd/
-/images_selfie/
-/images_crowd/
+/data/*
+/static/*
+/images_crowd/*
+/images_selfie/*
+/images_crowd/*
 *.swp

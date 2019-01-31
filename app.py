@@ -73,83 +73,111 @@ def select_faces(im, bbox, r=10):
 def calc_dist(img0, img1):
     return distance.euclidean(img0, img1)
 
-def preprocess_img(*args):
+def preprocess_img(max_dst_boxes=25, embeddings_max_iters=20, *args):
+    my_bboxs = np.array(face_detection(ME))
     
     # args is points on the faces to be swapped (selfies / friends photos)
-
-    my_bboxs = face_detection(ME)
+    if args:
+        to_keep = []
+        for arg in args:
+            for j, bbox in enumerate(my_bboxs):
+                if (bbox[0] <= arg[0] <= bbox[2]) and \
+                   (bbox[1] <= arg[1] <= bbox[3]):
+                        to_keep.append(j)
+        my_bboxs = my_bboxs[to_keep]
+            
     bboxs = np.array(face_detection(CROWD))
-    random_sample = np.random.choice(list(range(len(bboxs))), size=25)
-    if len(random_sample) < len(bboxs):
+    if len(bboxs) == 0 or len(my_bboxs) == 0:
+        return None
+    
+    random_sample_bboxs = np.random.choice(list(range(len(bboxs))), size=min(len(bboxs), max_dst_boxes))
+    random_sample_my_bboxs = np.random.choice(list(range(len(my_bboxs))), size=min(len(my_bboxs), max_dst_boxes))
+    
+    if len(random_sample_bboxs) < len(bboxs):
         bboxs = bboxs[random_sample]
-    src_face_descriptor = FACEREC.compute_face_descriptor(ME, 
-                          SP(ME, dlib.rectangle(*my_bboxs[0])), 20)
-    clst, i = (0, np.inf), 0
-    for bbox in bboxs:
-        face_descriptor = FACEREC.compute_face_descriptor(CROWD, 
-                           SP(CROWD, dlib.rectangle(*bbox)), 20)
-        dst = calc_dist(src_face_descriptor, face_descriptor)
-        if dst < clst[1]:
-            clst = (i, dst)
-        i += 1
-    return { "dst" : select_faces(CROWD, bboxs[clst[0]]),
-             "src" : select_faces(ME, my_bboxs[0]) }
+        
+    if len(random_sample_my_bboxs) < len(my_bboxs):
+        my_bboxs = my_bboxs[random_sample]
+
+    out, ignore_list = [], []
+    for i in range(len(my_bboxs)):
+        src_face_descriptor = FACEREC.compute_face_descriptor(ME, 
+                              SP(ME, dlib.rectangle(*my_bboxs[i])), embeddings_max_iters)
+        dsts = np.full(len(bboxs), np.inf)
+        for j, bbox in enumerate(bboxs):
+            if j in ignore_list:
+                continue
+            face_descriptor = FACEREC.compute_face_descriptor(CROWD,
+                              SP(CROWD, dlib.rectangle(*bbox)), embeddings_max_iters)
+            dsts[j] = calc_dist(src_face_descriptor, face_descriptor)
+        clst = np.random.choice(np.argsort(dsts)[:2])
+        ignore_list.append(clst)
+        out.append((select_faces(CROWD, bboxs[clst]), select_faces(ME, my_bboxs[i])))
+    return out
 
 def insert_face():
     
     result = preprocess_img()
-    dst_points, dst_shape, dst_face = result["dst"]
-    src_points, src_shape, src_face = result["src"]
-    del result; gc.collect()
+    if result is None:
+        return None
     
-    warp_2d = False
-    correct_color = True
-    max_points = 68
+    result_bboxs = []
+    for faces in result:
+        dst_points, dst_shape, dst_face = faces[0]
+        src_points, src_shape, src_face = faces[1]
+
+        warp_2d = False
+        correct_color = True
+        max_points = 58
+
+        w, h = dst_face.shape[:2]
+
+        ### Warp Image
+        if not warp_2d:
+            ## 3d warp
+            warped_src_face = warp_image_3d(src_face, src_points[:max_points], dst_points[:max_points], (w, h))
+        else:
+            ## 2d warp
+            src_mask = mask_from_points(src_face.shape[:2], src_points, radius=2)
+            src_face = apply_mask(src_face, src_mask)
+            # Correct Color for 2d warp
+            if correct_color:
+                warped_dst_img = warp_image_3d(dst_face, dst_points[:max_points], 
+                                               src_points[:max_points], src_face.shape[:2])
+                src_face = correct_colours(warped_dst_img, src_face, src_points)
+            # Warp
+            warped_src_face = warp_image_2d(src_face, transformation_from_points(dst_points, src_points), (w, h, 3))
+
+        ## Mask for blending
+        mask = mask_from_points((w, h), dst_points, radius=2)
+        mask_src = np.mean(warped_src_face, axis=2) > 0
+        mask = np.asarray(mask*mask_src, dtype=np.uint8)
+
+        ## Correct color
+        if not warp_2d and correct_color:
+            warped_src_face = apply_mask(warped_src_face, mask)
+            dst_face_masked = apply_mask(dst_face, mask)
+            warped_src_face = correct_colours(dst_face_masked, warped_src_face, dst_points)
+
+        ##Poisson Blending
+        r = cv2.boundingRect(mask)
+        center = ((r[0] + int(r[2] / 2), r[1] + int(r[3] / 2)))
+        output = cv2.seamlessClone(warped_src_face, dst_face, mask, center, cv2.NORMAL_CLONE)
+
+        x, y, w, h = dst_shape
+        result_bboxs.append(dst_shape)
+        
+        #dst_img_cp = CROWD.copy()
+        CROWD[y:y+h, x:x+w] = output
+        #output = dst_img_cp
+        
+
+    output_labeled = CROWD.copy()
+    for bbox in result_bboxs:
+        x, y, w, h = bbox
+        cv2.rectangle(output_labeled, (x, y), (x+w, y+h), (255,0,0), 2)
     
-    w, h = dst_face.shape[:2]
-
-    ### Warp Image
-    if not warp_2d:
-        ## 3d warp
-        warped_src_face = warp_image_3d(src_face, src_points[:max_points], dst_points[:max_points], (w, h))
-    else:
-        ## 2d warp
-        src_mask = mask_from_points(src_face.shape[:2], src_points, radius=2)
-        src_face = apply_mask(src_face, src_mask)
-        # Correct Color for 2d warp
-        if correct_color:
-            warped_dst_img = warp_image_3d(dst_face, dst_points[:max_points], 
-                                           src_points[:max_points], src_face.shape[:2])
-            src_face = correct_colours(warped_dst_img, src_face, src_points)
-        # Warp
-        warped_src_face = warp_image_2d(src_face, transformation_from_points(dst_points, src_points), (w, h, 3))
-
-    ## Mask for blending
-    mask = mask_from_points((w, h), dst_points, radius=2)
-    mask_src = np.mean(warped_src_face, axis=2) > 0
-    mask = np.asarray(mask*mask_src, dtype=np.uint8)
-
-    ## Correct color
-    if not warp_2d and correct_color:
-        warped_src_face = apply_mask(warped_src_face, mask)
-        dst_face_masked = apply_mask(dst_face, mask)
-        warped_src_face = correct_colours(dst_face_masked, warped_src_face, dst_points)
-
-    ##Poisson Blending
-    r = cv2.boundingRect(mask)
-    center = ((r[0] + int(r[2] / 2), r[1] + int(r[3] / 2)))
-    output = cv2.seamlessClone(warped_src_face, dst_face, mask, center, cv2.NORMAL_CLONE)
-
-    x, y, w, h = dst_shape
-    dst_img_cp = CROWD.copy()
-    dst_img_cp[y:y+h, x:x+w] = output
-    new_output = output.copy()
-    output = dst_img_cp
-
-    output_labeled = output.copy()
-    cv2.rectangle(output_labeled, (x, y), (x+w, y+h), (255,0,0), 2)
-    
-    return output, output_labeled
+    return output_labeled
 
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
@@ -214,20 +242,18 @@ def hello_world():
 
 @app.route('/upload_selfie', methods=['POST'])
 def upload_file_selfie():
-
     file = request.files['image_selfie']
     global ME
     ME = read_file_buffer(file) 
-
+    print(f" [INFO] Selfie loaded with shape: {ME.shape} ")
     return render_template('index.html', uploaded_selfie_success=True, init=True)
 
 @app.route('/upload_crowd',  methods=['GET', 'POST'])
 def upload_file_crowd():
-    
     file = request.files['image_crowd']
     global CROWD
-    CROWD = read_file_buffer(file)
-     
+    CROWD = read_file_buffer(file) 
+    print(f" [INFO] Crowd loaded with shape: {CROWD.shape} ")
     return render_template('index.html', uploaded_crowd_success=True, init=True)
 
 @app.route('/create_mix',  methods=['GET', 'POST'])
@@ -236,29 +262,26 @@ def upload_create_mix():
     global ME, CROWD;
 
     start = time.time() 
-    ME = open_img(ME, biggest=400)
-
-    # hack; must be deleted
-    if ME.shape[0] < ME.shape[1]: 
-        ME = np.rot90(ME) 
-    print(f" [INFO] Selfie loaded with shape: {ME.shape} ")
+    ME = open_img(ME, biggest=1200)
 
     old_shape = CROWD.shape[:-1][::-1]
     CROWD = open_img(CROWD, biggest=1200) 
-    print(f" [INFO] Crowd loaded with shape: {CROWD.shape} ")
 
-    #main 
-    output, output_labeled = insert_face()
-    output = cv2.resize(output, old_shape, Image.LANCZOS)
+    #mix 
+    output_labeled = insert_face()
+    if output_labeled is None: 
+        return render_template('index.html', created_success=False, init=True)
+
+    CROWD = cv2.resize(CROWD, old_shape, Image.LANCZOS)
     output_labeled = cv2.resize(output_labeled, old_shape, Image.LANCZOS)
 
-    print(f" [INFO] Time consumed:  {int(time.time() - start) * 1000} ms. ")
+    print(f" [INFO] Time consumed:  {int((time.time() - start) * 1000)} ms. ")
 
     file = os.path.join(app.config['UPLOAD_FOLDER'])
     if not os.path.exists(file):
         os.makedirs(file)
     # save answer 
-    cv2.imwrite(file + "/result.jpeg", cv2.cvtColor(output, cv2.COLOR_RGB2BGR))
+    cv2.imwrite(file + "/result.jpeg", cv2.cvtColor(CROWD, cv2.COLOR_RGB2BGR))
     # save labeled answer
     cv2.imwrite(file + "/answer.jpeg", cv2.cvtColor(output_labeled, cv2.COLOR_RGB2BGR))
 
