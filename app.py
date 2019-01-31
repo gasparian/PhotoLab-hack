@@ -5,19 +5,18 @@ import time
 import random
 from shutil import rmtree
 import multiprocessing
-
-import dlib
-from face_swap import warp_image_2d, warp_image_3d, mask_from_points, \
-                      apply_mask, correct_colours, transformation_from_points
-
-from flask import Flask, render_template, request, send_file, url_for
-from PIL import Image, ExifTags
 from datetime import timedelta
 from functools import update_wrapper
 
+import dlib
 import numpy as np
 import cv2
+from PIL import Image, ExifTags
 from scipy.spatial import distance
+from flask import Flask, render_template, request, send_file, url_for
+
+from face_swap import warp_image_2d, warp_image_3d, mask_from_points, \
+                      apply_mask, correct_colours, transformation_from_points
 #from utils import *
 
 def open_img(img, biggest=400):

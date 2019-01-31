@@ -1,6 +1,8 @@
-/data/*
-/static/*
-/images_crowd/*
-/images_selfie/*
-/images_crowd/*
+/data
+/static
+/__pycache__
+.ipynb_checkpoints
+/images_crowd
+/images_selfie
+/images_crowd
 *.swp
