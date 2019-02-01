@@ -1,4 +1,4 @@
-FROM ubuntu16.04
+FROM ubuntu:16.04
 
 RUN export DEBIAN_FRONTEND=noninteractive \
     APT_INSTALL="apt-get install -y --no-install-recommends" && \
@@ -72,11 +72,9 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     make -j"$(nproc)" install && \
     $GIT_CLONE --branch v19.16 https://github.com/davisking/dlib.git ~/dlib && \
     cd ~/dlib && \
-    python setup.py install --no DLIB_USE_CUDA --yes USE_AVX_INSTRUCTIONS && \
+    python setup.py install --no DLIB_USE_CUDA \
+                            --yes USE_AVX_INSTRUCTIONS && \
     cd ~
-
-RUN git clone https://github.com/gasparian/photolab_hack && \
-    cd ~/photolab_hack
 
 # ==================================================================
 # config & cleanup
@@ -87,6 +85,9 @@ RUN ldconfig && \
     apt-get autoremove && \
     rm -rf /var/lib/apt/lists/* /tmp/* ~/*
 
-ENTRYPOINT bash start.txt
+RUN git clone https://github.com/gasparian/photolab_hack ~/photolab_hack && \
+    cd ~/photolab_hack
+
+ENTRYPOINT ["~/photolab_hack/start.sh"]
 
 EXPOSE 8000

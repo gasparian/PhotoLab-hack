@@ -1,1 +1,2 @@
+#!/bin/bash
 gunicorn --bind=0.0.0.0:8003 --workers=1 --timeout 90 app:app
