@@ -83,9 +83,20 @@ RUN export DEBIAN_FRONTEND=noninteractive \
 RUN ldconfig && \
     apt-get clean && \
     apt-get autoremove && \
-    rm -rf /var/lib/apt/lists/* /tmp/* ~/*
+    rm -rf /var/lib/apt/lists/* /tmp/* ~/* && \
+    mkdir ~/photolab_hack
 
-RUN git clone --branch master https://github.com/gasparian/photolab_hack ~/photolab_hack
+COPY ./js/* /root/photolab_hack/js/
+COPY ./models/* /root/photolab_hack/models/
+COPY ./static/* /root/photolab_hack/static/
+COPY ./templates/* /root/photolab_hack/templates/
+COPY ./Dockerfile /root/photolab_hack/
+COPY ./app.py /root/photolab_hack/
+COPY ./build_docker.sh /root/photolab_hack/
+COPY ./face_swap.py /root/photolab_hack/
+COPY ./run_docker.sh /root/photolab_hack/
+COPY ./start.sh /root/photolab_hack/
+COPY ./utils.py /root/photolab_hack/
 
 ENTRYPOINT ["bash"]
 CMD ["/root/photolab_hack/start.sh"]
