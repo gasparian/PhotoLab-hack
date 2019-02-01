@@ -85,9 +85,9 @@ RUN ldconfig && \
     apt-get autoremove && \
     rm -rf /var/lib/apt/lists/* /tmp/* ~/*
 
-RUN git clone https://github.com/gasparian/photolab_hack ~/photolab_hack && \
-    cd ~/photolab_hack
+RUN git clone --branch master https://github.com/gasparian/photolab_hack ~/photolab_hack
 
-ENTRYPOINT ["~/photolab_hack/start.sh"]
+ENTRYPOINT ["bash"]
+CMD ["/root/photolab_hack/start.sh"]
 
 EXPOSE 8000
