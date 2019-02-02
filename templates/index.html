@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Find me challenge</title>
+  <title>Secrets out challenge</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
 <link rel="stylesheet" href="https://github.com/rvera/image-picker/blob/master/image-picker/image-picker.css">
@@ -121,7 +121,7 @@
 	<div class='col'>	
 
 		<form action="/show_answer" method="post" enctype="multipart/form-data" >
-			<button type="submit" class="btn btn-primary">Show answer</button>
+			<button type="submit" class="btn btn-warning">Show answer</button>
 		</form>
 	</div>
 </div>
@@ -156,7 +156,7 @@
 					</div>
 		<img src="{{result_filename}}" class="rounded image_size" >
 				{% elif show_answer %}
-					<div id='created_success' class="alert alert-success" style="margin-top:18px;">
+					<div id='right_answer' class="alert alert-success" style="margin-top:18px;">
 					Right answer
 					</div>
 		<img src="{{answer_filename}}" class="rounded image_size" >
@@ -164,7 +164,7 @@
 					<div >
 					</div>
 				{% else %}
-					<div id='crowd_fail' class="alert alert-danger" style="margin-top:18px;">
+					<div id='create_fail' class="alert alert-danger" style="margin-top:18px;">
 						<strong>Error</strong> Your image was not created!
 					</div>
 
@@ -174,8 +174,6 @@
 			{% endif %}
 	</div>
 </div>
-	
-
-	
+</div>
 </body>
 </html>
