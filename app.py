@@ -308,26 +308,15 @@ def read_image_exif(stream):
         image.close()
         return image
 
-@app.route('/upload_selfie', methods=['POST'])
-def upload_file_selfie():
-    global ME
-    ME = read_image_exif(request.files['image_selfie'].stream)
-
-    print(f" [INFO] Selfie loaded with shape: {ME.shape} ")
-    return render_template('index.html', uploaded_selfie_success=True, init=True)
-
-@app.route('/upload_crowd',  methods=['GET', 'POST'])
-def upload_file_crowd():
-    file = request.files['image_crowd']
-    global CROWD
-    CROWD = read_file_buffer(file) 
-    print(f" [INFO] Crowd loaded with shape: {CROWD.shape} ")
-    return render_template('index.html', uploaded_crowd_success=True, init=True)
 
 @app.route('/create_mix',  methods=['GET', 'POST'])
 def upload_create_mix():
 
-    global ME, CROWD;
+    file = request.files['image_crowd']
+    global CROWD
+    CROWD = read_file_buffer(file)
+    global ME
+    ME = read_image_exif(request.files['image_selfie'].stream)
 
     start = time.time() 
     ME = open_img(ME, biggest=400)
@@ -357,14 +346,9 @@ def upload_create_mix():
     ME = None; CROWD = None
 
     result_filename = url_for('static', filename='result.jpeg') + '?rnd=' + str(random.randint(0, 10e9))
-    return render_template('index.html', created_success=True, init=True,
-                           result_filename=result_filename)
-
-@app.route('/show_answer',  methods=['GET', 'POST'])
-def show_answer():
     answer_filename = url_for('static', filename='answer.jpeg') + '?rnd=' + str(random.randint(0, 10e9))
-    return render_template('index.html', show_answer=True, init=True,
-                           answer_filename=answer_filename)
+    return render_template('index.html', created_success=True, init=True,
+                           result_filename=result_filename, answer_filename=answer_filename)
 
 
 @app.route('/', methods=['GET'])
