@@ -49,7 +49,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
 	<div class="header_center">
-  <h1 style="font-family:serif;"> Find me challenge
+  <h1 style="font-family:serif;"> Secrets out challenge
   </h1>
 </div>
 
@@ -58,122 +58,58 @@
 <div class="jumbotron text-center add1">
 <div class="row">
 	<div class="col">
-		<form action="/upload_selfie" method="post" enctype="multipart/form-data" >
+		<form action="/create_mix" method="post" enctype="multipart/form-data" >
+			<div class="row empty_row">	<div class="col">
 				 <input type="file" name="image_selfie" class="btn btn-primary">
-			<input type="submit" value="Upload your image" class="btn btn-primary">
-		</form>
-
-
-		<div class="text-center">
-			{% if init %}
-				{% if uploaded_selfie_success %}
-					<div id='selfie_success' class="alert alert-success" style="margin-top:18px;">
-						<strong>Success!</strong> Your image was upload successfully
-					</div>
-				{% elif uploaded_crowd_success or created_success or show_answer%}
-					<div >
-					</div>
+			</div></div>
+			<div class="row empty_row">	<div class="col">
+				<input type="file" name="image_crowd" class="btn btn-primary">
+			</div></div>
+				{% if created_success %}
+			<div class="row empty_row">	<div class="col">
+				<input id="show_answer_id" type="button" value="Show answer" class="btn btn-warning" onclick="show_answer()">
+				<input id="return_to_mix_id" type="button" value="Show mix" class="btn btn-primary" onclick="return_ro_mix()" style="display: none;">
+			</div></div>
 				{% else %}
-					<div id='selfie_fail' class="alert alert-danger" style="margin-top:18px;">
-						<strong>Error</strong> Your image was not uploaded!
-					</div>
+			<div class="row empty_row">	<div class="col">
+				<input id="create_mix_id" type="submit" value="Create mix" class="btn btn-primary">
+			</div></div>
+
 				{% endif %}
-			{% endif %}
-		</div>
-	</div>
-</div>
-<div class="row empty_row">
-	<div class='col'>
-	</div>
-</div>
-<div class="row">
-	<div class='col'>	 
-		<form action="/upload_crowd" method="post" enctype="multipart/form-data" >
-				 <input type="file" name="image_crowd" class="btn btn-primary">
-			<input type="submit" value="Upload your image" class="btn btn-primary">
 		</form>
 
-
-		<div class="text-center">
-			{% if init %}
-				{% if uploaded_crowd_success %}
-					<div id='crowd_success' class="alert alert-success" style="margin-top:18px;">
-						<strong>Success!</strong> Your image was upload successfully
-					</div>
-				{% elif uploaded_selfie_success or 	created_success or show_answer%}
-					<div >
-					</div>
-				{% else %}
-					<div id='crowd_fail' class="alert alert-danger" style="margin-top:18px;">
-						<strong>Error</strong> Your image was not uploaded!
-					</div>
-				{% endif %}
-			{% endif %}
-		</div>
 	</div>
 </div>
-					{% if created_success %}
-<div class="row empty_row">
-	<div class='col'>
-	</div>
-</div>
-<div class="row">
-	<div class='col'>	
-
-		<form action="/show_answer" method="post" enctype="multipart/form-data" >
-			<button type="submit" class="btn btn-warning">Show answer</button>
-		</form>
-	</div>
-</div>
-						{% else %}
-<div class="row empty_row">
-	<div class='col'>
-	</div>
-</div>
-<div class="row">
-	<div class='col'>	 
-			<form action="/create_mix" method="post" enctype="multipart/form-data" >
-			<button type="submit" class="btn btn-primary">Create mix</button>
-		</form>
-	</div>
-</div>
-						{% endif %}
-
-	
-		
-<div class="row empty_row">
-	<div class='col'>
-	</div>
-</div>
-<div class="row">
-	<div class='col'>	 
-
-		<div class="text-center">
+	<div class="row">
+		<div class="col">
 			{% if init %}
 				{% if created_success %}
-					<div id='created_success' class="alert alert-success" style="margin-top:18px;">
-						<strong>Success!</strong> Your image was created successfully
-					</div>
-		<img src="{{result_filename}}" class="rounded image_size" >
-				{% elif show_answer %}
-					<div id='right_answer' class="alert alert-success" style="margin-top:18px;">
-					Right answer
-					</div>
-		<img src="{{answer_filename}}" class="rounded image_size" >
-				{% elif uploaded_selfie_success or show_answer or uploaded_crowd_success %}
-					<div >
-					</div>
-				{% else %}
-					<div id='create_fail' class="alert alert-danger" style="margin-top:18px;">
-						<strong>Error</strong> Your image was not created!
-					</div>
-
-		</div>
-
+					<img id='result_img' src="{{result_filename}}" class="rounded image_size" >
+					<img id='answer_img' src="{{answer_filename}}" class="rounded image_size" style="display: none;" >
 				{% endif %}
 			{% endif %}
+		</div>
 	</div>
+
 </div>
-</div>
+				<script>
+					function show_answer() {
+						document.getElementById("answer_img").style.display = "inline";
+						document.getElementById("result_img").style.display = "none";
+						document.getElementById("return_to_mix_id").style.display = "inline";
+						document.getElementById("show_answer_id").style.display = "none";
+						document.getElementById("return_to_mix_id").onclick=return_to_mix;
+					}
+
+				</script>
+				<script>
+					function return_to_mix() {
+						document.getElementById("answer_img").style.display = "none";
+						document.getElementById("result_img").style.display = "inline";
+						document.getElementById("return_to_mix_id").style.display = "none";
+						document.getElementById("show_answer_id").style.display = "inline";
+						document.getElementById("show_answer_id").onclick=show_answer;
+					}
+				</script>
 </body>
 </html>
