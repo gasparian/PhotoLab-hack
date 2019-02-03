@@ -16,11 +16,28 @@ import numpy as np
 import cv2
 from PIL import Image, ExifTags
 from scipy.spatial import distance
-from flask import Flask, render_template, request, send_file, url_for
+from flask import Flask, jsonify, render_template, request, send_file, url_for
+
+import boto3
+os.environ['AWS_PROFILE'] = "photo-hack-gene"
 
 from face_swap import warp_image_2d, warp_image_3d, mask_from_points, \
                       apply_mask, correct_colours, transformation_from_points
 #from utils import *
+
+def convertDtypeRec(dd):
+    dtype = type(dd)
+    if dtype == list:
+        for i in range(len(dd)):
+            try:
+                dd[i] = dd[i].item()
+            except:
+                convertDtypeRec(dd[i])
+    else:
+        try:
+            dd = dd.item()
+        except:
+            pass
 
 def open_img(url, biggest=400, flip_colors=False):
 
@@ -251,16 +268,16 @@ def insert_face(result, CROWD):
         output = cv2.seamlessClone(warped_src_face, dst_face, mask, center, cv2.NORMAL_CLONE)
 
         x, y, w, h = dst_shape
-        result_bboxs.append(dst_shape)
+        result_bboxs.append((x, y, x+w, y+h))
         CROWD[y:y+h, x:x+w] = output
         
 
-    output_labeled = CROWD.copy()
-    for bbox in result_bboxs:
-        x, y, w, h = bbox
-        cv2.rectangle(output_labeled, (x, y), (x+w, y+h), (255,0,0), 2)
+    #output_labeled = CROWD.copy()
+    #for bbox in result_bboxs:
+    #    x1, y1, x2, y2 = bbox
+    #    cv2.rectangle(output_labeled, (x1, y1), (x2, y2), (255,0,0), 2)
     
-    return CROWD, output_labeled
+    return CROWD, result_bboxs
 
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
@@ -318,6 +335,9 @@ MAX_SIZE_CROWD = 1000
 WARP_2D = False
 CORRECT_COLOR = True
 MAX_POINTS = 58
+
+BUCKET_NAME = "storage.ws.pho.to"
+PATH = "photohack/gene"
 
 app = Flask(__name__)
 app.debug=True
@@ -385,13 +405,12 @@ def upload_create_mix_new():
     start = time.time() 
     #mix
     result = preprocess_img.run(CROWD, [(ME, None), (FRIEND, None)])
-    CROWD, output_labeled = insert_face(result, CROWD)
-    if output_labeled is None:
+    CROWD, result_bboxs = insert_face(result, CROWD)
+    if result_bboxs is None:
         print(" [INFO] Something went wrong :( ")
         #return render_template('index.html', created_success=False, init=True)
 
     CROWD = cv2.resize(CROWD, old_shape, Image.LANCZOS)
-    output_labeled = cv2.resize(output_labeled, old_shape, Image.LANCZOS)
 
     print(f" [INFO] Time consumed:  {int((time.time() - start) * 1000)} ms. ")
 
@@ -405,6 +424,7 @@ def upload_create_mix_new():
 
 @app.route('/create_mix_s3',  methods=['GET', 'POST'])
 def upload_create_mix_s3(): 
+    responses = {} 
     FRIEND = None
     
     input_urls = json.loads(request.values["data"])
@@ -419,20 +439,28 @@ def upload_create_mix_s3():
     start = time.time() 
     #mix
     result = preprocess_img.run(CROWD, [(ME, None), (FRIEND, None)])
-    CROWD, output_labeled = insert_face(result, CROWD)
-    if output_labeled is None:
+    CROWD, result_bboxs = insert_face(result, CROWD)
+    responses["bboxs"] = str(result_bboxs)
+    if result_bboxs is None:
         print(" [INFO] Something went wrong :( ")
         #return render_template('index.html', created_success=False, init=True)
 
     CROWD = cv2.resize(CROWD, old_shape, Image.LANCZOS)
-    output_labeled = cv2.resize(output_labeled, old_shape, Image.LANCZOS)
+
+    CROWD = cv2.cvtColor(CROWD, cv2.COLOR_BGR2RGB)
+    retval, buff = cv2.imencode('.jpeg', CROWD)
+    s3 = boto3.client('s3')
+    fname = PATH+"/"+str(random.randint(0,10e12))+".jpeg"
+    s3.upload_fileobj(BytesIO(buff), BUCKET_NAME, fname, 
+                      ExtraArgs={"ACL":'public-read', "StorageClass":'STANDARD'})
+    responses["url"] = f"https://storage.ws.pho.to/{fname}"
 
     print(f" [INFO] Time consumed:  {int((time.time() - start) * 1000)} ms. ")
 
-    retval, buff = cv2.imencode('.jpeg', CROWD)
+    for key in responses:
+        convertDtypeRec(responses[key])
 
-    return send_file(
-           BytesIO(buff),
-           mimetype='image/jpeg',
-           as_attachment=True,
-           attachment_filename='%s.jpg' % str(random.randint(0,10e12)))
+    responses = jsonify(responses)
+    responses.status_code = 200 
+
+    return responses

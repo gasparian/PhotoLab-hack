@@ -86,7 +86,9 @@ RUN ldconfig && \
     rm -rf /var/lib/apt/lists/* /tmp/* ~/* && \
     mkdir ~/photolab_hack
 
-RUN pip install requests
+RUN pip install requests \
+                awscli && \
+    mkdir /root/.aws
 
 COPY ./js/* /root/photolab_hack/js/
 COPY ./models/* /root/photolab_hack/models/
@@ -99,6 +101,10 @@ COPY ./face_swap.py /root/photolab_hack/
 COPY ./run_docker.sh /root/photolab_hack/
 COPY ./start.sh /root/photolab_hack/
 COPY ./utils.py /root/photolab_hack/
+
+COPY ./config /root/.aws/
+COPY ./credentials /root/.aws/
+RUN export AWS_PROFILE=photo-hack-gene
 
 ENTRYPOINT ["bash"]
 CMD ["/root/photolab_hack/start.sh"]
