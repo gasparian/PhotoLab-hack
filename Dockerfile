@@ -86,6 +86,8 @@ RUN ldconfig && \
     rm -rf /var/lib/apt/lists/* /tmp/* ~/* && \
     mkdir ~/photolab_hack
 
+RUN pip install requests
+
 COPY ./js/* /root/photolab_hack/js/
 COPY ./models/* /root/photolab_hack/models/
 COPY ./static/* /root/photolab_hack/static/

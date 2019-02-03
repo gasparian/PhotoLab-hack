@@ -3,10 +3,13 @@ import re
 import gc
 import time
 import random
+import requests
+from io import BytesIO
 from shutil import rmtree
 import multiprocessing
 from datetime import timedelta
 from functools import update_wrapper
+import json
 
 import dlib
 import numpy as np
@@ -19,11 +22,43 @@ from face_swap import warp_image_2d, warp_image_3d, mask_from_points, \
                       apply_mask, correct_colours, transformation_from_points
 #from utils import *
 
-def open_img(img, biggest=400):
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    scale = biggest / max(img.shape[:-1]) 
-    img = cv2.resize(img, (int(img.shape[1]*scale), int(img.shape[0]*scale)), Image.LANCZOS)
-    return img
+def open_img(url, biggest=400, flip_colors=False):
+
+    if type(url) == str:
+        response = requests.get(url)
+        stream = BytesIO(response.content)
+    else:
+        stream = url.stream 
+
+    image=Image.open(stream)
+    try: 
+        for orientation in ExifTags.TAGS.keys():
+            if ExifTags.TAGS[orientation]=='Orientation':
+                break
+        exif=dict(image._getexif().items())
+
+        if exif[orientation] == 3:
+            image=image.rotate(180, expand=True)
+        elif exif[orientation] == 6:
+            image=image.rotate(270, expand=True)
+        elif exif[orientation] == 8:
+            image=image.rotate(90, expand=True)
+
+    except (AttributeError, KeyError, IndexError):
+        # cases: image don't have getexif
+        pass
+
+    # convert to opencv format
+    cv_image = np.array(image.convert('RGB'))
+    image.close()
+    cv_image = cv_image[:, :, ::-1].copy()
+    if flip_colors:
+        cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+    scale = biggest / max(cv_image.shape[:-1]) 
+    old_shape = cv_image.shape[:-1][::-1]
+    cv_image = cv2.resize(cv_image, (int(cv_image.shape[1]*scale), 
+                     int(cv_image.shape[0]*scale)), Image.LANCZOS)
+    return cv_image, old_shape
 
 def read_file_buffer(f):
     img = f.read()
@@ -102,6 +137,8 @@ class preprocess_img:
 
         selfies_boxes = []
         for SELFIE in SELFIES:
+            if SELFIE[0] is None:
+                continue
             selfies_boxes.append(get_selfie_bboxs(SELFIE))
 
         selfies_boxes_len = sum([len(my_bboxs) for my_bboxs in selfies_boxes])
@@ -125,6 +162,8 @@ class preprocess_img:
             
         out, self.ignore_list = [], []
         for img_num, SELFIE in enumerate(SELFIES):
+            if SELFIE[0] is None:
+                continue
             my_bboxs = selfies_boxes[img_num]
             for i in range(len(my_bboxs)):
                 self.src_face_descriptor = FACEREC.compute_face_descriptor(SELFIE[0], 
@@ -221,7 +260,7 @@ def insert_face(result, CROWD):
         x, y, w, h = bbox
         cv2.rectangle(output_labeled, (x, y), (x+w, y+h), (255,0,0), 2)
     
-    return output_labeled
+    return CROWD, output_labeled
 
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
@@ -290,50 +329,22 @@ print(" [INFO] Server loaded! ")
 def hello_world():
     return render_template('index.html')
 
-def read_image_exif(stream):
-    image=Image.open(stream)
-    try: 
-        for orientation in ExifTags.TAGS.keys():
-            if ExifTags.TAGS[orientation]=='Orientation':
-                break
-        exif=dict(image._getexif().items())
-
-        if exif[orientation] == 3:
-            image=image.rotate(180, expand=True)
-        elif exif[orientation] == 6:
-            image=image.rotate(270, expand=True)
-        elif exif[orientation] == 8:
-            image=image.rotate(90, expand=True)
-
-    except (AttributeError, KeyError, IndexError):
-        # cases: image don't have getexif
-        pass
-
-    # convert to opencv format
-    cv_image = np.array(image.convert('RGB'))
-    image.close()
-    cv_image = cv_image[:, :, ::-1].copy()
-    return cv_image
-
-
 @app.route('/create_mix',  methods=['GET', 'POST'])
-def upload_create_mix():
+def upload_create_mix(): 
 
-    CROWD = read_image_exif(request.files['image_crowd'].stream)
-    ME = read_image_exif(request.files['image_selfie'].stream)
+    CROWD, old_shape = open_img(request.files['image_crowd'], 
+                                biggest=MAX_SIZE_SELFIE, flip_colors=True)
+    ME, _ = open_img(request.files['image_selfie'], 
+                     biggest=MAX_SIZE_CROWD, flip_colors=True)
 
     start = time.time() 
-    ME = open_img(ME, biggest=MAX_SIZE_SELFIE)
     print(f" [INFO] Selfie shape: {ME.shape}")
-
-    old_shape = CROWD.shape[:-1][::-1]
-    CROWD = open_img(CROWD, biggest=MAX_SIZE_CROWD) 
     print(f" [INFO] Crowd shape: {CROWD.shape}")
 
     #MIX
     #preprocess_img gets one photo of the crowd and a list of (selfies, points) 
     result = preprocess_img.run(CROWD, [(ME, None)])
-    output_labeled = insert_face(result, CROWD)
+    CROWD, output_labeled = insert_face(result, CROWD)
     if output_labeled is None:
         print(" [INFO] Something goes wrong :( ")
         return render_template('index.html', created_success=False, init=True)
@@ -357,3 +368,37 @@ def upload_create_mix():
     answer_filename = url_for('static', filename='answer.jpeg') + '?rnd=' + str(random.randint(0, 10e9))
     return render_template('index.html', created_success=True, init=True,
                            result_filename=result_filename, answer_filename=answer_filename)
+
+@app.route('/create_mix_new',  methods=['GET', 'POST'])
+def upload_create_mix_new(): 
+    FRIEND = None
+    
+    input_urls = json.loads(request.values["data"])
+    ME, _ = open_img(input_urls["me"]["url"], biggest=MAX_SIZE_SELFIE)
+    print(f" [INFO] Selfie shape: {ME.shape}")
+    CROWD, old_shape = open_img(input_urls["crowd"]["url"], biggest=MAX_SIZE_CROWD)
+    print(f" [INFO] Crowd shape: {CROWD.shape}")
+    if "friend" in input_urls:
+        FRIEND, _ = open_img(input_urls["friend"]["url"], biggest=MAX_SIZE_SELFIE)
+        print(f" [INFO] Friend photo shape: {FRIEND.shape}")
+
+    start = time.time() 
+    #mix
+    result = preprocess_img.run(CROWD, [(ME, None), (FRIEND, None)])
+    CROWD, output_labeled = insert_face(result, CROWD)
+    if output_labeled is None:
+        print(" [INFO] Something went wrong :( ")
+        #return render_template('index.html', created_success=False, init=True)
+
+    CROWD = cv2.resize(CROWD, old_shape, Image.LANCZOS)
+    output_labeled = cv2.resize(output_labeled, old_shape, Image.LANCZOS)
+
+    print(f" [INFO] Time consumed:  {int((time.time() - start) * 1000)} ms. ")
+
+    retval, buff = cv2.imencode('.jpeg', CROWD)
+
+    return send_file(
+           BytesIO(buff),
+           mimetype='image/jpeg',
+           as_attachment=True,
+           attachment_filename='%s.jpg' % str(random.randint(0,10e12)))
