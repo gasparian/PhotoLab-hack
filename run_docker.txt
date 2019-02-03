@@ -1,1 +1,0 @@
-nvidia-docker run --rm -it -v /home:/data -p 8003:8003 --ipc=host ufoym/deepo:all-py36-jupyter

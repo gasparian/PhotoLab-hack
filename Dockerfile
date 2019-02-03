@@ -1,4 +1,4 @@
-FROM ubuntu16.04
+FROM ubuntu:16.04
 
 RUN export DEBIAN_FRONTEND=noninteractive \
     APT_INSTALL="apt-get install -y --no-install-recommends" && \
@@ -72,11 +72,9 @@ RUN export DEBIAN_FRONTEND=noninteractive \
     make -j"$(nproc)" install && \
     $GIT_CLONE --branch v19.16 https://github.com/davisking/dlib.git ~/dlib && \
     cd ~/dlib && \
-    python setup.py install --no DLIB_USE_CUDA --yes USE_AVX_INSTRUCTIONS && \
+    python setup.py install --no DLIB_USE_CUDA \
+                            --yes USE_AVX_INSTRUCTIONS && \
     cd ~
-
-RUN git clone https://github.com/gasparian/photolab_hack && \
-    cd ~/photolab_hack
 
 # ==================================================================
 # config & cleanup
@@ -85,8 +83,22 @@ RUN git clone https://github.com/gasparian/photolab_hack && \
 RUN ldconfig && \
     apt-get clean && \
     apt-get autoremove && \
-    rm -rf /var/lib/apt/lists/* /tmp/* ~/*
+    rm -rf /var/lib/apt/lists/* /tmp/* ~/* && \
+    mkdir ~/photolab_hack
 
-ENTRYPOINT bash start.txt
+COPY ./js/* /root/photolab_hack/js/
+COPY ./models/* /root/photolab_hack/models/
+COPY ./static/* /root/photolab_hack/static/
+COPY ./templates/* /root/photolab_hack/templates/
+COPY ./Dockerfile /root/photolab_hack/
+COPY ./app.py /root/photolab_hack/
+COPY ./build_docker.sh /root/photolab_hack/
+COPY ./face_swap.py /root/photolab_hack/
+COPY ./run_docker.sh /root/photolab_hack/
+COPY ./start.sh /root/photolab_hack/
+COPY ./utils.py /root/photolab_hack/
+
+ENTRYPOINT ["bash"]
+CMD ["/root/photolab_hack/start.sh"]
 
 EXPOSE 8000
