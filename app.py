@@ -151,6 +151,7 @@ class preprocess_img:
                 clst = np.argmin(dsts)
                 self.ignore_list.append(clst)
                 out.append((select_faces(CROWD, self.bboxs[clst]), select_faces(SELFIE[0], my_bboxs[i])))
+        self.CROWD = None
         return out
     
     @classmethod
@@ -349,6 +350,8 @@ def upload_create_mix():
     cv2.imwrite(file + "/result.jpeg", cv2.cvtColor(CROWD, cv2.COLOR_RGB2BGR))
     # save labeled answer
     cv2.imwrite(file + "/answer.jpeg", cv2.cvtColor(output_labeled, cv2.COLOR_RGB2BGR))
+
+    ME = None; CROWD = None; gc.collect()
 
     result_filename = url_for('static', filename='result.jpeg') + '?rnd=' + str(random.randint(0, 10e9))
     answer_filename = url_for('static', filename='answer.jpeg') + '?rnd=' + str(random.randint(0, 10e9))
