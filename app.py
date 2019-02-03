@@ -176,7 +176,7 @@ class preprocess_img:
                             continue
                         face_descriptor = FACEREC.compute_face_descriptor(CROWD,
                                           SP(CROWD, dlib.rectangle(*bbox)), embeddings_max_iters)
-                        dsts[j] = calc_dist(src_face_descriptor, face_descriptor)
+                        dsts[j] = calc_dist(self.src_face_descriptor, face_descriptor)
                 else:
                     manager = multiprocessing.Manager()
                     pool = multiprocessing.Pool(n_jobs)
@@ -371,6 +371,40 @@ def upload_create_mix():
 
 @app.route('/create_mix_new',  methods=['GET', 'POST'])
 def upload_create_mix_new(): 
+    FRIEND = None
+    
+    input_urls = json.loads(request.values["data"])
+    ME, _ = open_img(input_urls["me"]["url"], biggest=MAX_SIZE_SELFIE)
+    print(f" [INFO] Selfie shape: {ME.shape}")
+    CROWD, old_shape = open_img(input_urls["crowd"]["url"], biggest=MAX_SIZE_CROWD)
+    print(f" [INFO] Crowd shape: {CROWD.shape}")
+    if "friend" in input_urls:
+        FRIEND, _ = open_img(input_urls["friend"]["url"], biggest=MAX_SIZE_SELFIE)
+        print(f" [INFO] Friend photo shape: {FRIEND.shape}")
+
+    start = time.time() 
+    #mix
+    result = preprocess_img.run(CROWD, [(ME, None), (FRIEND, None)])
+    CROWD, output_labeled = insert_face(result, CROWD)
+    if output_labeled is None:
+        print(" [INFO] Something went wrong :( ")
+        #return render_template('index.html', created_success=False, init=True)
+
+    CROWD = cv2.resize(CROWD, old_shape, Image.LANCZOS)
+    output_labeled = cv2.resize(output_labeled, old_shape, Image.LANCZOS)
+
+    print(f" [INFO] Time consumed:  {int((time.time() - start) * 1000)} ms. ")
+
+    retval, buff = cv2.imencode('.jpeg', CROWD)
+
+    return send_file(
+           BytesIO(buff),
+           mimetype='image/jpeg',
+           as_attachment=True,
+           attachment_filename='%s.jpg' % str(random.randint(0,10e12)))
+
+@app.route('/create_mix_s3',  methods=['GET', 'POST'])
+def upload_create_mix_s3(): 
     FRIEND = None
     
     input_urls = json.loads(request.values["data"])
