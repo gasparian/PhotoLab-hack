@@ -11,6 +11,78 @@
 
     <style type="text/css">
 
+        /** spinner */
+        .geneSpinner {
+            color: #fff;
+            font-size: 20px;
+            margin: 100px auto;
+            width: 1em;
+            height: 1em;
+            border-radius: 50%;
+            position: relative;
+            text-indent: -9999em;
+            -webkit-animation: load4 1.3s infinite linear;
+            animation: load4 1.3s infinite linear;
+            -webkit-transform: translateZ(0);
+            -ms-transform: translateZ(0);
+            transform: translateZ(0);
+        }
+
+        @-webkit-keyframes load4 {
+          0%,
+          100% {
+            box-shadow: 0 -3em 0 0.2em, 2em -2em 0 0em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 0;
+          }
+          12.5% {
+            box-shadow: 0 -3em 0 0, 2em -2em 0 0.2em, 3em 0 0 0, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 -1em;
+          }
+          25% {
+            box-shadow: 0 -3em 0 -0.5em, 2em -2em 0 0, 3em 0 0 0.2em, 2em 2em 0 0, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 -1em;
+          }
+          37.5% {
+            box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 0, 2em 2em 0 0.2em, 0 3em 0 0em, -2em 2em 0 -1em, -3em 0em 0 -1em, -2em -2em 0 -1em;
+          }
+          50% {
+            box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 0em, 0 3em 0 0.2em, -2em 2em 0 0, -3em 0em 0 -1em, -2em -2em 0 -1em;
+          }
+          62.5% {
+            box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 0, -2em 2em 0 0.2em, -3em 0 0 0, -2em -2em 0 -1em;
+          }
+          75% {
+            box-shadow: 0em -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0, -3em 0em 0 0.2em, -2em -2em 0 0;
+          }
+          87.5% {
+            box-shadow: 0em -3em 0 0, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0, -3em 0em 0 0, -2em -2em 0 0.2em;
+          }
+        }
+        @keyframes load4 {
+          0%,
+          100% {
+            box-shadow: 0 -3em 0 0.2em, 2em -2em 0 0em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 0;
+          }
+          12.5% {
+            box-shadow: 0 -3em 0 0, 2em -2em 0 0.2em, 3em 0 0 0, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 -1em;
+          }
+          25% {
+            box-shadow: 0 -3em 0 -0.5em, 2em -2em 0 0, 3em 0 0 0.2em, 2em 2em 0 0, 0 3em 0 -1em, -2em 2em 0 -1em, -3em 0 0 -1em, -2em -2em 0 -1em;
+          }
+          37.5% {
+            box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 0, 2em 2em 0 0.2em, 0 3em 0 0em, -2em 2em 0 -1em, -3em 0em 0 -1em, -2em -2em 0 -1em;
+          }
+          50% {
+            box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 0em, 0 3em 0 0.2em, -2em 2em 0 0, -3em 0em 0 -1em, -2em -2em 0 -1em;
+          }
+          62.5% {
+            box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 0, -2em 2em 0 0.2em, -3em 0 0 0, -2em -2em 0 -1em;
+          }
+          75% {
+            box-shadow: 0em -3em 0 -1em, 2em -2em 0 -1em, 3em 0em 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0, -3em 0em 0 0.2em, -2em -2em 0 0;
+          }
+          87.5% {
+            box-shadow: 0em -3em 0 0, 2em -2em 0 -1em, 3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, -2em 2em 0 0, -3em 0em 0 0, -2em -2em 0 0.2em;
+          }
+        }
+
         /** Progress bar */
 
         .progress-steps {
@@ -96,6 +168,29 @@
             padding: 14px 24px 16px;
             color: #fff;
             display: inline-block;
+            height: 48px;
+            position: relative;
+        }
+
+        .geneBtn.loading .geneBtnLoading {
+            display: flex;
+        }
+
+        .geneBtnLoading {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            top: 0;
+            background: #2a79ff;
+            border-radius: 2px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .geneBtnLoading .geneSpinner {
+            transform: scale(0.2);
         }
 
         .geneBtn:active {
@@ -110,6 +205,34 @@
 
         .geneBtn.bordered:active {
             background-color: #fff;
+        }
+
+        .genePlus {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #2a79ff;
+            position: relative;
+        }
+
+        .genePlus:after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 19px;
+            width: 2px;
+            bottom: 10px;
+            background: #2a79ff;
+        }
+
+        .genePlus:before {
+            content: '';
+            position: absolute;
+            height: 2px;
+            top: 19px;
+            left: 10px;
+            right: 10px;
+            background: #2a79ff;
         }
 
         .container {
@@ -137,10 +260,12 @@
             flex-direction: row;
             height: 48px;
             padding: 0 20px;
-            margin: 20px 0;
+            margin: 0 0 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
             box-sizing: border-box;
             justify-content: space-between;
             align-items: center;
+            font-size: 18px;
         }
 
         .content {
@@ -164,33 +289,117 @@
         /** **/
         .crowdList {
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             overflow-x: hidden;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             margin-bottom: 10px;
         }
 
-        .crowdRow {
-            display: flex;
-            margin-bottom: 5px;
-        }
-
-        .crowdBlock {
-            flex: 1;
-        }
-
-        .crowdBlock:not(:first-child) {
-            margin-left: 10px;
-        }
-
-        .crowdBlock img {
-            width: 100%;
-        }
-
-        #cookingScreen img {
-            max-width: 300px;
-            max-height: 100px;
+        .crowdList .genePlus {
+            flex-shrink: 0;
             margin-bottom: 10px;
+        }
+
+        .crowdList img {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        #facesScreen .contentBody {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #facesScreen .genePlus {
+            margin-bottom: 10px;
+        }
+
+        .faceBlock {
+            position: relative;
+            background: #f2f2f2;
+            margin-bottom: 10px;
+        }
+
+        .faceBlock img {
+            max-width: 100%;
+        }
+
+        .faceBlockEdit {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+
+        .faceBlockRemove {
+            position: absolute;
+            top: 55px;
+            right: 5px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+        }
+
+        #cookingScreen .contentBody {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #cookingScreen .content {
+            position: relative;
+        }
+
+        #cookingSeparator {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 175px;
+            height: 1px;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        #cookingFaces {
+            height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 50px;
+        }
+
+        #cookingFaces img {
+            max-width: 45%;
+            object-fit: contain;
+        }
+
+        #cookingFaces img:first-child:not(:last-child) {
+            margin-right: 10px;
+        }
+
+        #cookingCrowd {
+            flex: 1;
+            margin-bottom: 20px;
+        }
+
+        #cookingCrowd img {
+            object-fit: contain;
+            max-width: 100%;
+            max-height: 100%;
         }
 
         #resultScreen img {
@@ -210,104 +419,66 @@
         </div>
         <div class="screen" id="facesScreen">
             <div class="header">
-                Select pictures with faces
+                Select photo of you or your friends
             </div>
             <div class="content">
                 <div class="contentBody">
-                    <div class="geneBtn" onclick="selectFacePhoto()" style="margin-bottom: 20px;">
-                        Select dumb photo
+                    <div class="genePlus" onclick="selectFacePhoto()">
                     </div>
-                    <div class="geneBtn" onclick="selectNativeFacePhoto()">
-                        Select native photo
+                    <div id="facesDiv">
+
                     </div>
                 </div>
                 <div class="actionButtons">
                     <div></div>
                     <div></div>
-                    <div></div>
+                     <div class="geneBtn" onclick="openCrowdScreen()">
+                        Next
+                    </div>
                 </div>
                 <!-- TODO: select 2 photos -->
             </div>
         </div>
         <div class="screen" id="crowdScreen">
             <div class="header">
-                Select photo with crowd
+                Choose the crowd
             </div>
             <div class="content">
                 <div class="crowdList">
-                        <div class="crowdRow">
-                            <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                             <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                        </div>
-                        <div class="crowdRow">
-                            <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                             <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                        </div>
-                        <div class="crowdRow">
-                            <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                             <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                        </div>
-                        <div class="crowdRow">
-                            <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                             <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                        </div>
-                        <div class="crowdRow">
-                            <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                             <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                        </div>
-                        <div class="crowdRow">
-                            <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                             <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                        </div>
-                        <div class="crowdRow">
-                            <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                             <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                        </div>
-                        <div class="crowdRow">
-                            <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                             <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                        </div>
-                        <div class="crowdRow">
-                            <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                             <div class="crowdBlock">
-                                <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
-                            </div>
-                        </div>
+                    <div class="genePlus" onclick="selectCrowdPhoto()">
                     </div>
+
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                    <img src="https://oralcancerfoundation.org/wp-content/uploads/2016/03/people.jpg" />
+                </div>
                 <div class="actionButtons">
                     <div class="geneBtn bordered" onclick="popScreen()">
                         Back
@@ -320,18 +491,27 @@
         </div>
         <div class="screen" id="cookingScreen">
             <div class="header">
-                Verify selected photos
+                Make a mix!
             </div>
             <div class="content">
                 <div class="contentBody">
+                    <div id="cookingFaces">
+                    </div>
+                    <div id="cookingSeparator">
+                    </div>
+                    <div id="cookingCrowd">
+                    </div>
                 </div>
                 <div class="actionButtons">
                     <div class="geneBtn bordered" onclick="popScreen()">
                         Back
                     </div>
                     <div></div>
-                    <div class="geneBtn" onclick="mixSelectedPhotos()">
+                    <div class="geneBtn" id="mixBtn" onclick="mixSelectedPhotos()">
                         Mix!
+                        <div class="geneBtnLoading">
+                            <div class="geneSpinner">Loading...</div>
+                        </div>
                     </div>
                 </div>
                 <!-- TODO: show selected + crowd + start/back buttons. Send to API here! -->
@@ -340,7 +520,9 @@
         </div>
         <div class="screen" id="resultScreen">
             <div class="header">
-                Result
+                Great job!
+                <br>
+                Share result and tag friends!
             </div>
             <div class="content">
                 <div class="contentBody">
@@ -353,7 +535,6 @@
                     <div class="geneBtn" onclick="alert('Shared!'); resetScreens()">
                         Share
                     </div>
-
                 </div>
                 <!-- TODO: show selected + crowd + start/back buttons. Send to API here! -->
                 <!-- cooking process animation -->
@@ -385,12 +566,8 @@
     </div>
 
     <script>
-        var facePhoto = {
-            url: '',
-            crop: [0, 0, 1, 1],
-            rotation: 0,
-            flip: 0
-        }
+        var mixInProcess = false
+        var facesPhotos = []
         var crowdPhoto = {
             url: '',
             crop: [0, 0, 1, 1],
@@ -398,6 +575,7 @@
             flip: 0
         }
 
+        var facesDiv = document.getElementById('facesDiv')
         var progressSteps = document.getElementById('progressSteps')
         var screensStack = []
 
@@ -446,6 +624,16 @@
         }
 
         function resetScreens() {
+            facesDiv.innerHTML = ''
+            facesPhotos.length = 0
+            crowdPhoto = {
+                url: '',
+                crop: [0, 0, 1, 1],
+                rotation: 0,
+                flip: 0
+            }
+            updateFacesScreenUI()
+
             while(screensStack.length > 1) {
                 popScreen()
             }
@@ -457,7 +645,93 @@
 
         function openFacesScreen() {
             screensStack.length = 0
+            updateFacesScreenUI()
             pushScreen('facesScreen')
+        }
+
+        function selectFacePhoto() {
+            selectNativePhoto(function (photo) {
+                pushFacePhoto(photo)
+
+                updateFacesScreenUI()
+            })
+        }
+
+        function selectCrowdPhoto() {
+            selectNativePhoto(function (photo) {
+                crowdPhoto = photo
+                openCookingScreen()
+            })
+        }
+
+        function pushFacePhoto(photo) {
+            facesPhotos.push(photo)
+
+            var div = document.createElement('div')
+            div.classList.add('faceBlock')
+
+            var img = new Image()
+            img.src = photo.url
+            div.appendChild(img)
+
+            var edit = document.createElement('div')
+            edit.classList.add('faceBlockEdit')
+            edit.addEventListener('click', function () {
+                selectNativePhoto(function (photo) {
+                    img.src = photo.url
+                })
+            })
+            edit.innerHTML = 'Edit'
+            div.appendChild(edit)
+
+            var remove = document.createElement('div')
+            remove.classList.add('faceBlockRemove')
+            remove.addEventListener('click', function () {
+                facesPhotos = facesPhotos.filter(function (p) { return p.id !== photo.id })
+                facesDiv.removeChild(div)
+                updateFacesScreenUI()
+            })
+            remove.innerHTML = 'X'
+            div.appendChild(remove)
+
+            facesDiv.appendChild(div)
+        }
+
+        function updateFacesScreenUI() {
+            var buttons = document.querySelector('#facesScreen .actionButtons')
+            if (facesPhotos.length > 0) {
+                buttons.style.display = 'flex'
+            } else {
+                buttons.style.display = 'none'
+            }
+
+            var plus = document.querySelector('#facesScreen .genePlus')
+            if (facesPhotos.length > 1) {
+                plus.style.display = 'none'
+            } else {
+                plus.style.display = 'block'
+            }
+        }
+
+        function selectNativePhoto(onPhotoSelected) {
+            /*var photo = {
+                url: Math.random() > 0.5 ? 'https://s16.stc.all.kpcdn.net/share/i/12/10577981/inx960x640.jpg' : 'https://www.hindustantimes.com/rf/image_size_960x540/HT/p2/2019/02/02/Pictures/russia-politics-putin_9b482d60-26e6-11e9-b3a2-37e00a7683f5.jpg',
+                crop: [0, 0, 1, 1],
+                rotation: 0,
+                flip: 0
+            }
+            onPhotoSelected(photo)
+            return*/
+
+            var callback = 'nativePhotoSelected'
+            window[callback] = function (result) {
+                var photos = result.photos
+                var photo = photos[0]
+                if (photo) {
+                    onPhotoSelected(photo)
+                }
+            }
+            location.href = 'callback:nativePhotoSelect?func=' + callback
         }
 
         function openCrowdScreen() {
@@ -465,16 +739,21 @@
         }
 
         function openCookingScreen() {
-            var body = document.querySelector('#cookingScreen .contentBody')
-            body.innerHTML = ''
+            var cookingFaces = document.getElementById('cookingFaces')
+            cookingFaces.innerHTML = ''
 
-            var faceImg = new Image()
-            faceImg.src = facePhoto.url
-            body.appendChild(faceImg)
+            var cookingCrowd = document.getElementById('cookingCrowd')
+            cookingCrowd.innerHTML = ''
+
+            for (var i = 0; i < facesPhotos.length; i++) {
+                var img = new Image()
+                img.src = facesPhotos[i].url
+                cookingFaces.appendChild(img)
+            }
 
             var crowdImage = new Image()
             crowdImage.src = crowdPhoto.url
-            body.appendChild(crowdImage)
+            cookingCrowd.appendChild(crowdImage)
 
             pushScreen('cookingScreen')
         }
@@ -483,25 +762,17 @@
             pushScreen('resultScreen')
         }
 
-        function selectFacePhoto() {
-            facePhoto.url = 'https://s16.stc.all.kpcdn.net/share/i/12/10577981/inx960x640.jpg'
-            openCrowdScreen()
-        }
-
-        function selectNativeFacePhoto() {
-            location.href = 'callback:nativePhotoSelect?func=nativePhotoSelected'
-        }
-
-        function nativePhotoSelected(result) {
-            var photos = result.photos
-            var facePhoto = photos[0]
-            openCrowdScreen()
-        }
-
         function mixSelectedPhotos() {
+            if (mixInProcess) {
+                return
+            }
+            var mixBtn = document.getElementById('mixBtn')
+            mixBtn.classList.add('loading')
+            mixInProcess = true
+
             var payload = {
-                me: facePhoto,
-                friend: undefined,
+                me: facesPhotos[0],
+                friend: facesPhotos[1],
                 crowd: crowdPhoto
             }
 
@@ -510,6 +781,9 @@
 
             var img = new Image()
             img.addEventListener('load', function imgOnLoad() {
+                mixInProcess = false
+                mixBtn.classList.remove('loading')
+
                 console.timeEnd('loading')
 
                 var body = document.querySelector('#resultScreen .contentBody')
@@ -520,13 +794,19 @@
                 openResultScreen()
             })
             img.addEventListener('error', function imgOnError() {
+                mixInProcess = false
+                mixBtn.classList.remove('loading')
+
                 console.log('mix img error')
-                alert('Mix failed :(')
+                //alert('Mix failed :(')
                 console.timeEnd('loading')
             })
             img.addEventListener('abort', function imgOnAbort() {
+                mixInProcess = false
+                mixBtn.classList.remove('loading')
+
                 console.log('mix img abort')
-                alert('Mix failed :(')
+                //alert('Mix failed :(')
                 console.timeEnd('loading')
             })
             img.src = 'http://192.168.88.8:8003/create_mix_new?data=' + encodeURIComponent(JSON.stringify(payload))
@@ -545,6 +825,25 @@
             .then(resp => resp.json())
             .then(data => console.log('response', data))
             .catch(error => console.log('fetch error', error))*/
+        }
+
+        function shareResult() {
+            var callbackName = 'nativeShareCallback'
+            window[callbackName] = function (result) {
+                if (result) {
+                    // shared
+                } else {
+                    // not shared
+                }
+
+                // TODO: loading?
+                resetScreens()
+            }
+            // TODO: result img src
+            location.href = 'callback:nativeShare?og_image=' + encodeURIComponent(imgUrl) +
+                '&og_title=' + encodeURIComponent(imgTitle) +
+                '&og_description=' + encodeURIComponent(imgDescription) + 
+                '&func=' + callbackName
         }
 
         openStartScreen()
