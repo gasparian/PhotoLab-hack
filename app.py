@@ -347,7 +347,7 @@ print(" [INFO] Server loaded! ")
 
 @app.route('/')
 def hello_world():
-    return render_template('index.html')
+    return render_template('index3.html')
 
 @app.route('/create_mix',  methods=['GET', 'POST'])
 def upload_create_mix(): 
