@@ -17,7 +17,7 @@ import numpy as np
 import cv2
 from PIL import Image, ExifTags
 from scipy.spatial import distance
-from flask import Flask, jsonify, render_template, request, send_file, url_for
+from flask import Flask, jsonify, render_template, request, send_file, url_for, make_response, current_app
 
 import boto3
 os.environ['AWS_PROFILE'] = "photo-hack-gene"
@@ -225,7 +225,7 @@ class preprocess_img:
         res[k] = dsts
         del dsts; gc.collect()
 
-def insert_face(result, CROWD):
+def insert_face(result, CROWD, scale):
     
     if result is None:
         return None
@@ -270,7 +270,7 @@ def insert_face(result, CROWD):
         output = cv2.seamlessClone(warped_src_face, dst_face, mask, center, cv2.NORMAL_CLONE)
 
         x, y, w, h = dst_shape
-        result_bboxs.append((x, y, x+w, y+h))
+        result_bboxs.append([x*scale, y*scale, (x+w)*scale, (y+h)*scale])
         CROWD[y:y+h, x:x+w] = output
     
     return CROWD, result_bboxs
@@ -350,6 +350,7 @@ def hello_world():
     return render_template('index3.html')
 
 @app.route('/create_mix',  methods=['GET', 'POST'])
+@crossdomain(origin='*')
 def create_mix(): 
     responses = {} 
     friend, points_me, points_friend = None, None, None
@@ -372,14 +373,15 @@ def create_mix():
     #mix
     result = processor.run(crowd, [(me, points_me), 
                                    (friend, points_friend)])
-    CROWD, result_bboxs = insert_face(result, crowd)
-    responses["bboxs"] = str(result_bboxs)
+    CROWD, result_bboxs = insert_face(result, crowd,
+                                      max(old_shape) / MAX_SIZE_CROWD)
+    responses["bboxs"] = result_bboxs
     if result_bboxs is None:
         print(" [INFO] Something went wrong :( ")
         #return render_template('index.html', created_success=False, init=True)
 
     crowd = cv2.resize(crowd, old_shape, Image.LANCZOS)
-    crowd = cv2.cvtColor(crowd, cv2.COLOR_BGR2RGB)
+    #crowd = cv2.cvtColor(crowd, cv2.COLOR_BGR2RGB)
     retval, buff = cv2.imencode('.jpeg', crowd)
 
     s3 = boto3.client('s3')
