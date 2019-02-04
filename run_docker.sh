@@ -1,2 +1,2 @@
 #!/bin/bash
-docker run --rm -it -p 8003:8003 --ipc=host gasparjan/photolab_hack:latest
+docker run --rm -it -p 8003:8000 --ipc=host gasparjan/photolab_hack:latest
