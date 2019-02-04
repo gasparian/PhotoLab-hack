@@ -423,6 +423,7 @@
             </div>
             <div class="content">
                 <div class="contentBody">
+                    <a href="callback:nativePhotoSelect?func=nativePhotoSelectedDumb">SHIIIIIIEEEEET!</a>
                     <div class="genePlus" onclick="selectFacePhoto()">
                     </div>
                     <div id="facesDiv">
@@ -732,6 +733,14 @@
                 }
             }
             location.href = 'callback:nativePhotoSelect?func=' + callback
+        }
+
+        function nativePhotoSelectedDumb(result) {
+            var photos = result.photos
+            var photo = photos[0]
+            if (photo) {
+                alert(JSON.stringify(photo))
+            }
         }
 
         function openCrowdScreen() {
