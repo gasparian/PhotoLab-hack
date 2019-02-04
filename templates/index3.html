@@ -326,6 +326,7 @@
 
         .faceBlock img {
             max-width: 100%;
+            max-height: 20vh;
         }
 
         .faceBlockEdit {
@@ -423,7 +424,6 @@
             </div>
             <div class="content">
                 <div class="contentBody">
-                    <a href="callback:nativePhotoSelect?func=nativePhotoSelectedDumb">SHIIIIIIEEEEET!</a>
                     <div class="genePlus" onclick="selectFacePhoto()">
                     </div>
                     <div id="facesDiv">
@@ -567,6 +567,7 @@
     </div>
 
     <script>
+        var facePhotoId = 0
         var mixInProcess = false
         var facesPhotos = []
         var crowdPhoto = {
@@ -719,7 +720,8 @@
                 url: Math.random() > 0.5 ? 'https://s16.stc.all.kpcdn.net/share/i/12/10577981/inx960x640.jpg' : 'https://www.hindustantimes.com/rf/image_size_960x540/HT/p2/2019/02/02/Pictures/russia-politics-putin_9b482d60-26e6-11e9-b3a2-37e00a7683f5.jpg',
                 crop: [0, 0, 1, 1],
                 rotation: 0,
-                flip: 0
+                flip: 0,
+                id: facePhotoId++
             }
             onPhotoSelected(photo)
             return*/
@@ -729,6 +731,8 @@
                 var photos = result.photos
                 var photo = photos[0]
                 if (photo) {
+                    photo.id = facePhotoId++
+                    photo.url = photo.image_url
                     onPhotoSelected(photo)
                 }
             }
