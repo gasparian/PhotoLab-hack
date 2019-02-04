@@ -6,3 +6,4 @@
 /images_selfie
 /images_crowd
 *.swp
+.DS_Store
