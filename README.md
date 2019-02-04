@@ -9,13 +9,13 @@
  ```
  docker run --rm -it -p 80:8000 --ipc=host gasparjan/photolab_hack:latest
  ```
- or go to project folder and bash script:
+ or go to project folder and run bash script:
  ```
  cd ~/photolab_hack
  ./run_docker.sh
  ```
 
-4. Configure access to AWS S3:
+4. Configure access to AWS S3 inside the running image:
  - go to .aws folder:
  ```
  cd ~/.aws
