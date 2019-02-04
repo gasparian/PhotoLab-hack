@@ -349,45 +349,8 @@ print(" [INFO] Server loaded! ")
 def hello_world():
     return render_template('index3.html')
 
-@app.route('/create_mix',  methods=['GET', 'POST'])
-def upload_create_mix(): 
-
-    CROWD, old_shape = open_img(request.files['image_crowd'], 
-                                biggest=MAX_SIZE_SELFIE, flip_colors=True)
-    ME, _ = open_img(request.files['image_selfie'], 
-                     biggest=MAX_SIZE_CROWD, flip_colors=True)
-
-    start = time.time() 
-    print(f" [INFO] Selfie shape: {ME.shape}")
-    print(f" [INFO] Crowd shape: {CROWD.shape}")
-
-    #MIX
-    #preprocess_img gets one photo of the crowd and a list of (selfies, points) 
-    result = preprocess_img.run(CROWD, [(ME, None)])
-    CROWD, output_labeled = insert_face(result, CROWD)
-    if output_labeled is None:
-        print(" [INFO] Something goes wrong :( ")
-        return render_template('index.html', created_success=False, init=True)
-
-    CROWD = cv2.resize(CROWD, old_shape, Image.LANCZOS)
-    output_labeled = cv2.resize(output_labeled, old_shape, Image.LANCZOS)
-
-    print(f" [INFO] Time consumed:  {int((time.time() - start) * 1000)} ms. ")
-
-    file = os.path.join(app.config['UPLOAD_FOLDER'])
-    if not os.path.exists(file):
-        os.makedirs(file)
-    # save answer 
-    cv2.imwrite(file + "/result.jpeg", cv2.cvtColor(CROWD, cv2.COLOR_RGB2BGR))
-    # save labeled answer
-    cv2.imwrite(file + "/answer.jpeg", cv2.cvtColor(output_labeled, cv2.COLOR_RGB2BGR))
-
-    ME = None; CROWD = None; gc.collect()
-
-    result_filename = url_for('static', filename='result.jpeg') + '?rnd=' + str(random.randint(0, 10e9))
-    answer_filename = url_for('static', filename='answer.jpeg') + '?rnd=' + str(random.randint(0, 10e9))
-    return render_template('index.html', created_success=True, init=True,
-                           result_filename=result_filename, answer_filename=answer_filename)
+#    return render_template('index.html', created_success=True, init=True,
+#                           result_filename=result_filename, answer_filename=answer_filename)
 
 @app.route('/create_mix_new',  methods=['GET', 'POST'])
 def upload_create_mix_new(): 

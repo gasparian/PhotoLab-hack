@@ -102,11 +102,9 @@ COPY ./run_docker.sh /root/photolab_hack/
 COPY ./start.sh /root/photolab_hack/
 COPY ./utils.py /root/photolab_hack/
 
-COPY ./config /root/.aws/
-COPY ./credentials /root/.aws/
 RUN export AWS_PROFILE=photo-hack-gene
 
 ENTRYPOINT ["bash"]
-CMD ["/root/photolab_hack/start.sh"]
+#CMD ["/root/photolab_hack/start.sh"]
 
 EXPOSE 8000
