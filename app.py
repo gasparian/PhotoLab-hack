@@ -2,6 +2,7 @@ import os
 import re
 import gc
 import time
+load_start = time.time()
 import random
 import requests
 from io import BytesIO
@@ -41,33 +42,30 @@ def convertDtypeRec(dd):
 
 def open_img(url, biggest=400, flip_colors=False):
 
-    if type(url) == str:
-        response = requests.get(url)
-        stream = BytesIO(response.content)
-    else:
-        stream = url.stream 
+    response = requests.get(url)
+    with BytesIO(response.content) as stream:
+        image=Image.open(stream)
+        try: 
+            for orientation in ExifTags.TAGS.keys():
+                if ExifTags.TAGS[orientation]=='Orientation':
+                    break
+            exif=dict(image._getexif().items())
 
-    image=Image.open(stream)
-    try: 
-        for orientation in ExifTags.TAGS.keys():
-            if ExifTags.TAGS[orientation]=='Orientation':
-                break
-        exif=dict(image._getexif().items())
+            if exif[orientation] == 3:
+                image=image.rotate(180, expand=True)
+            elif exif[orientation] == 6:
+                image=image.rotate(270, expand=True)
+            elif exif[orientation] == 8:
+                image=image.rotate(90, expand=True)
 
-        if exif[orientation] == 3:
-            image=image.rotate(180, expand=True)
-        elif exif[orientation] == 6:
-            image=image.rotate(270, expand=True)
-        elif exif[orientation] == 8:
-            image=image.rotate(90, expand=True)
+        except (AttributeError, KeyError, IndexError):
+            # cases: image don't have getexif
+            pass
 
-    except (AttributeError, KeyError, IndexError):
-        # cases: image don't have getexif
-        pass
+        # convert to opencv format
+        cv_image = np.array(image.convert('RGB'))
+        image.close()
 
-    # convert to opencv format
-    cv_image = np.array(image.convert('RGB'))
-    image.close()
     cv_image = cv_image[:, :, ::-1].copy()
     if flip_colors:
         cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
@@ -94,28 +92,6 @@ def face_detection(img):
         bboxs.append((face.left(), face.top(), face.right(), face.bottom()))
     
     return bboxs
-
-def face_points_detection(img, bbox):
-    # Get the landmarks/parts for the face in box d.
-    shape = PREDICTOR(img, bbox)
-
-    # loop over the 68 facial landmarks and convert them
-    # to a 2-tuple of (x, y)-coordinates
-    coords = [(shape.part(i).x, shape.part(i).y) for i in range(68)]
-
-    # return the list of (x, y)-coordinates
-    return coords
-
-def select_faces(im, bbox, r=10):
-    points = face_points_detection(im, dlib.rectangle(*bbox))
-    im_w, im_h = im.shape[:2]
-    left, top = np.min(points, 0)
-    right, bottom = np.max(points, 0)
-    
-    x, y = max(0, left-r), max(0, top-r)
-    w, h = min(right+r, im_h)-x, min(bottom+r, im_w)-y
-
-    return points - np.asarray([[x, y]]), (x, y, w, h), im[y:y+h, x:x+w]
 
 def calc_dist(img0, img1):
     return distance.euclidean(img0, img1)
@@ -145,28 +121,54 @@ def chunker(l, n):
 
 class preprocess_img:
 
-    @classmethod
-    def run(self, CROWD, SELFIES, max_dst_boxes=25, embeddings_max_iters=2, n_jobs=2):
+    def __init__(self, max_dst_boxes=25, embeddings_max_iters=2, n_jobs=2):
+
+        self.max_dst_boxes = max_dst_boxes
+        self.embeddings_max_iters = embeddings_max_iters
+        self.n_jobs = n_jobs
+
+    def face_points_detection(self, img, bbox):
+        # Get the landmarks/parts for the face in box d.
+        shape = PREDICTOR(img, bbox)
+
+        # loop over the 68 facial landmarks and convert them
+        # to a 2-tuple of (x, y)-coordinates
+        coords = [(shape.part(i).x, shape.part(i).y) for i in range(68)]
+
+        # return the list of (x, y)-coordinates
+        return coords
+
+    def select_faces(self, im, bbox, r=10):
+        points = self.face_points_detection(im, dlib.rectangle(*bbox))
+        im_w, im_h = im.shape[:2]
+        left, top = np.min(points, 0)
+        right, bottom = np.max(points, 0)
+        
+        x, y = max(0, left-r), max(0, top-r)
+        w, h = min(right+r, im_h)-x, min(bottom+r, im_w)-y
+
+        return points - np.asarray([[x, y]]), (x, y, w, h), im[y:y+h, x:x+w]
+
+    def run(self, crowd, selfies):
         #args is a list of tuples: (img, points)
        
-        self.CROWD = CROWD 
-        self.embeddings_max_iters = embeddings_max_iters
+        self.crowd = crowd
 
         selfies_boxes = []
-        for SELFIE in SELFIES:
-            if SELFIE[0] is None:
+        for selfie in selfies:
+            if selfie[0] is None:
                 continue
-            selfies_boxes.append(get_selfie_bboxs(SELFIE))
+            selfies_boxes.append(get_selfie_bboxs(selfie))
 
         selfies_boxes_len = sum([len(my_bboxs) for my_bboxs in selfies_boxes])
-        self.bboxs = np.array(face_detection(CROWD))
+        self.bboxs = np.array(face_detection(crowd))
         if len(self.bboxs) == 0 or selfies_boxes_len == 0:
             return None
 
         random_sample_bboxs = np.random.choice(list(range(len(self.bboxs))), 
-                                               size=min(len(self.bboxs), max_dst_boxes))
+                                               size=min(len(self.bboxs), self.max_dst_boxes))
         random_sample_my_bboxs = np.random.choice(list(range(selfies_boxes_len)), 
-                                               size=min(selfies_boxes_len, max_dst_boxes))
+                                               size=min(selfies_boxes_len, self.max_dst_boxes))
 
         if len(random_sample_bboxs) < len(self.bboxs):
             self.bboxs = self.bboxs[random_sample_bboxs]
@@ -175,50 +177,50 @@ class preprocess_img:
             my_bboxs = my_bboxs[random_sample_my_bboxs]
 
         if len(self.bboxs) < 2:
-            n_jobs = 1
+            self.n_jobs = 1
             
         out, self.ignore_list = [], []
-        for img_num, SELFIE in enumerate(SELFIES):
-            if SELFIE[0] is None:
+        for img_num, selfie in enumerate(selfies):
+            if selfie[0] is None:
                 continue
             my_bboxs = selfies_boxes[img_num]
             for i in range(len(my_bboxs)):
-                self.src_face_descriptor = FACEREC.compute_face_descriptor(SELFIE[0], 
-                                      SP(SELFIE[0], dlib.rectangle(*my_bboxs[i])), embeddings_max_iters)
+                self.src_face_descriptor = FACEREC.compute_face_descriptor(selfie[0], 
+                                      SP(selfie[0], dlib.rectangle(*my_bboxs[i])), self.embeddings_max_iters)
 
-                if n_jobs == 1:
+                if self.n_jobs == 1:
                     dsts = np.full(len(self.bboxs), np.inf)
                     for j, bbox in enumerate(self.bboxs):
                         if j in self.ignore_list:
                             continue
-                        face_descriptor = FACEREC.compute_face_descriptor(CROWD,
-                                          SP(CROWD, dlib.rectangle(*bbox)), embeddings_max_iters)
+                        face_descriptor = FACEREC.compute_face_descriptor(self.crowd,
+                                          SP(self.crowd, dlib.rectangle(*bbox)), self.embeddings_max_iters)
                         dsts[j] = calc_dist(self.src_face_descriptor, face_descriptor)
                 else:
                     manager = multiprocessing.Manager()
-                    pool = multiprocessing.Pool(n_jobs)
-                    res = manager.list([0] * n_jobs)
-                    chunks = list(chunker(list(range(len(self.bboxs))), n_jobs))
-                    pool.map(self.run_comparison, [(j, chunks[j], res) for j in range(n_jobs)])
-                    dsts = np.concatenate([res[j] for j in range(n_jobs)], axis=0)
+                    pool = multiprocessing.Pool(self.n_jobs)
+                    res = manager.list([0] * self.n_jobs)
+                    chunks = list(chunker(list(range(len(self.bboxs))), self.n_jobs))
+                    pool.map(self.run_comparison, [(j, chunks[j], res) for j in range(self.n_jobs)])
+                    dsts = np.concatenate([res[j] for j in range(self.n_jobs)], axis=0)
                     pool.close()
                     gc.collect()
 
                 clst = np.argmin(dsts)
                 self.ignore_list.append(clst)
-                out.append((select_faces(CROWD, self.bboxs[clst]), select_faces(SELFIE[0], my_bboxs[i])))
-        self.CROWD = None
+                out.append((self.select_faces(self.crowd, self.bboxs[clst]), self.select_faces(selfie[0], my_bboxs[i])))
+        del self.crowd; del self.bboxs; gc.collect()
+        self.crowd = None; self.bboxs = None;
         return out
     
-    @classmethod
     def run_comparison(self, args):
         k, chunk, res = args
         dsts = np.full(len(chunk), np.inf)
         for l, m in enumerate(chunk):
             if m in self.ignore_list:
                 continue
-            face_descriptor = FACEREC.compute_face_descriptor(self.CROWD,
-                              SP(self.CROWD, dlib.rectangle(*self.bboxs[m])), self.embeddings_max_iters)
+            face_descriptor = FACEREC.compute_face_descriptor(self.crowd,
+                              SP(self.crowd, dlib.rectangle(*self.bboxs[m])), self.embeddings_max_iters)
             dsts[l] = calc_dist(self.src_face_descriptor, face_descriptor)
         res[k] = dsts
         del dsts; gc.collect()
@@ -270,12 +272,6 @@ def insert_face(result, CROWD):
         x, y, w, h = dst_shape
         result_bboxs.append((x, y, x+w, y+h))
         CROWD[y:y+h, x:x+w] = output
-        
-
-    #output_labeled = CROWD.copy()
-    #for bbox in result_bboxs:
-    #    x1, y1, x2, y2 = bbox
-    #    cv2.rectangle(output_labeled, (x1, y1), (x2, y2), (255,0,0), 2)
     
     return CROWD, result_bboxs
 
@@ -323,12 +319,8 @@ def crossdomain(origin=None, methods=None, headers=None,
         return update_wrapper(wrapped_function, f)
     return decorator
 
-#load trained models
-# face landmarks
-PREDICTOR = dlib.shape_predictor('./models/shape_predictor_68_face_landmarks.dat')
-# dlib face recognition
-SP = dlib.shape_predictor("./models/shape_predictor_5_face_landmarks.dat")
-FACEREC = dlib.face_recognition_model_v1("./models/dlib_face_recognition_resnet_model_v1.dat")
+#######################################################################################################
+
 
 MAX_SIZE_SELFIE = 400 
 MAX_SIZE_CROWD = 1000
@@ -339,45 +331,54 @@ MAX_POINTS = 58
 BUCKET_NAME = "storage.ws.pho.to"
 PATH = "photohack/gene"
 
-app = Flask(__name__)
-app.debug=True
-app.config['UPLOAD_FOLDER'] = os.path.basename('static')
+#load trained models
+# face landmarks
+PREDICTOR = dlib.shape_predictor('./models/shape_predictor_68_face_landmarks.dat')
+# dlib face recognition
+SP = dlib.shape_predictor("./models/shape_predictor_5_face_landmarks.dat")
+FACEREC = dlib.face_recognition_model_v1("./models/dlib_face_recognition_resnet_model_v1.dat")
 
-print(" [INFO] Server loaded! ")
+
+#######################################################################################################
+
+app = Flask(__name__)
+
+print(f" [INFO] Server loaded! {int((time.time() - load_start) * 1000)} ms. ")
 
 @app.route('/')
 def hello_world():
     return render_template('index3.html')
 
-#    return render_template('index.html', created_success=True, init=True,
-#                           result_filename=result_filename, answer_filename=answer_filename)
+#return render_template('index.html', created_success=True, init=True,
+#                       result_filename=result_filename, answer_filename=answer_filename)
 
 @app.route('/create_mix_new',  methods=['GET', 'POST'])
 def upload_create_mix_new(): 
-    FRIEND = None
+    friend = None
+    processor = preprocess_img(max_dst_boxes=15, embeddings_max_iters=2, n_jobs=2)
     
     input_urls = json.loads(request.values["data"])
-    ME, _ = open_img(input_urls["me"]["url"], biggest=MAX_SIZE_SELFIE)
-    print(f" [INFO] Selfie shape: {ME.shape}")
-    CROWD, old_shape = open_img(input_urls["crowd"]["url"], biggest=MAX_SIZE_CROWD)
-    print(f" [INFO] Crowd shape: {CROWD.shape}")
+    me, _ = open_img(input_urls["me"]["url"], biggest=MAX_SIZE_SELFIE)
+    print(f" [INFO] Selfie shape: {me.shape}")
+    crowd, old_shape = open_img(input_urls["crowd"]["url"], biggest=MAX_SIZE_CROWD)
+    print(f" [INFO] Crowd shape: {crowd.shape}")
     if "friend" in input_urls:
-        FRIEND, _ = open_img(input_urls["friend"]["url"], biggest=MAX_SIZE_SELFIE)
-        print(f" [INFO] Friend photo shape: {FRIEND.shape}")
+        friend, _ = open_img(input_urls["friend"]["url"], biggest=MAX_SIZE_SELFIE)
+        print(f" [INFO] Friend photo shape: {friend.shape}")
 
     start = time.time() 
     #mix
-    result = preprocess_img.run(CROWD, [(ME, None), (FRIEND, None)])
-    CROWD, result_bboxs = insert_face(result, CROWD)
+    result = processor.run(crowd, [(me, None), (friend, None)])
+    crowd, result_bboxs = insert_face(result, crowd)
     if result_bboxs is None:
         print(" [INFO] Something went wrong :( ")
         #return render_template('index.html', created_success=False, init=True)
 
-    CROWD = cv2.resize(CROWD, old_shape, Image.LANCZOS)
+    crowd = cv2.resize(crowd, old_shape, Image.LANCZOS)
 
     print(f" [INFO] Time consumed:  {int((time.time() - start) * 1000)} ms. ")
 
-    retval, buff = cv2.imencode('.jpeg', CROWD)
+    retval, buff = cv2.imencode('.jpeg', crowd)
 
     return send_file(
            BytesIO(buff),
@@ -388,34 +389,38 @@ def upload_create_mix_new():
 @app.route('/create_mix_s3',  methods=['GET', 'POST'])
 def upload_create_mix_s3(): 
     responses = {} 
-    FRIEND = None
+    friend = None
+    processor = preprocess_img(max_dst_boxes=15, embeddings_max_iters=2, n_jobs=2)
     
     input_urls = json.loads(request.values["data"])
-    ME, _ = open_img(input_urls["me"]["url"], biggest=MAX_SIZE_SELFIE)
-    print(f" [INFO] Selfie shape: {ME.shape}")
-    CROWD, old_shape = open_img(input_urls["crowd"]["url"], biggest=MAX_SIZE_CROWD)
-    print(f" [INFO] Crowd shape: {CROWD.shape}")
+    me, _ = open_img(input_urls["me"]["url"], biggest=MAX_SIZE_SELFIE)
+    print(f" [INFO] Selfie shape: {me.shape}")
+    crowd, old_shape = open_img(input_urls["crowd"]["url"], biggest=MAX_SIZE_CROWD)
+    print(f" [INFO] Crowd shape: {crowd.shape}")
     if "friend" in input_urls:
-        FRIEND, _ = open_img(input_urls["friend"]["url"], biggest=MAX_SIZE_SELFIE)
-        print(f" [INFO] Friend photo shape: {FRIEND.shape}")
+        friend, _ = open_img(input_urls["friend"]["url"], biggest=MAX_SIZE_SELFIE)
+        print(f" [INFO] Friend photo shape: {friend.shape}")
 
     start = time.time() 
     #mix
-    result = preprocess_img.run(CROWD, [(ME, None), (FRIEND, None)])
-    CROWD, result_bboxs = insert_face(result, CROWD)
+    result = processor.run(crowd, [(me, None), (friend, None)])
+    CROWD, result_bboxs = insert_face(result, crowd)
     responses["bboxs"] = str(result_bboxs)
     if result_bboxs is None:
         print(" [INFO] Something went wrong :( ")
         #return render_template('index.html', created_success=False, init=True)
 
-    CROWD = cv2.resize(CROWD, old_shape, Image.LANCZOS)
+    crowd = cv2.resize(crowd, old_shape, Image.LANCZOS)
+    crowd = cv2.cvtColor(crowd, cv2.COLOR_BGR2RGB)
+    retval, buff = cv2.imencode('.jpeg', crowd)
 
-    CROWD = cv2.cvtColor(CROWD, cv2.COLOR_BGR2RGB)
-    retval, buff = cv2.imencode('.jpeg', CROWD)
     s3 = boto3.client('s3')
     fname = PATH+"/"+str(random.randint(0,10e12))+".jpeg"
-    s3.upload_fileobj(BytesIO(buff), BUCKET_NAME, fname, 
-                      ExtraArgs={"ACL":'public-read', "StorageClass":'STANDARD'})
+
+    with BytesIO(buff) as f:
+        s3.upload_fileobj(f, BUCKET_NAME, fname, 
+                          ExtraArgs={"ACL":'public-read', "StorageClass":'STANDARD'})
+
     responses["url"] = f"https://storage.ws.pho.to/{fname}"
 
     print(f" [INFO] Time consumed:  {int((time.time() - start) * 1000)} ms. ")
@@ -426,4 +431,7 @@ def upload_create_mix_s3():
     responses = jsonify(responses)
     responses.status_code = 200 
 
+    gc.collect()
+
     return responses
+
