@@ -349,61 +349,29 @@ print(f" [INFO] Server loaded! {int((time.time() - load_start) * 1000)} ms. ")
 def hello_world():
     return render_template('index3.html')
 
-#return render_template('index.html', created_success=True, init=True,
-#                       result_filename=result_filename, answer_filename=answer_filename)
-
-@app.route('/create_mix_new',  methods=['GET', 'POST'])
-def upload_create_mix_new(): 
-    friend = None
-    processor = preprocess_img(max_dst_boxes=15, embeddings_max_iters=2, n_jobs=2)
-    
-    input_urls = json.loads(request.values["data"])
-    me, _ = open_img(input_urls["me"]["url"], biggest=MAX_SIZE_SELFIE)
-    print(f" [INFO] Selfie shape: {me.shape}")
-    crowd, old_shape = open_img(input_urls["crowd"]["url"], biggest=MAX_SIZE_CROWD)
-    print(f" [INFO] Crowd shape: {crowd.shape}")
-    if "friend" in input_urls:
-        friend, _ = open_img(input_urls["friend"]["url"], biggest=MAX_SIZE_SELFIE)
-        print(f" [INFO] Friend photo shape: {friend.shape}")
-
-    start = time.time() 
-    #mix
-    result = processor.run(crowd, [(me, None), (friend, None)])
-    crowd, result_bboxs = insert_face(result, crowd)
-    if result_bboxs is None:
-        print(" [INFO] Something went wrong :( ")
-        #return render_template('index.html', created_success=False, init=True)
-
-    crowd = cv2.resize(crowd, old_shape, Image.LANCZOS)
-
-    print(f" [INFO] Time consumed:  {int((time.time() - start) * 1000)} ms. ")
-
-    retval, buff = cv2.imencode('.jpeg', crowd)
-
-    return send_file(
-           BytesIO(buff),
-           mimetype='image/jpeg',
-           as_attachment=True,
-           attachment_filename='%s.jpg' % str(random.randint(0,10e12)))
-
-@app.route('/create_mix_s3',  methods=['GET', 'POST'])
-def upload_create_mix_s3(): 
+@app.route('/create_mix',  methods=['GET', 'POST'])
+def create_mix(): 
     responses = {} 
-    friend = None
+    friend, points_me, points_friend = None
     processor = preprocess_img(max_dst_boxes=15, embeddings_max_iters=2, n_jobs=2)
     
     input_urls = json.loads(request.values["data"])
     me, _ = open_img(input_urls["me"]["url"], biggest=MAX_SIZE_SELFIE)
+    if "points" in input_urls["me"]:
+        points_me = input_urls["me"]["points"]
     print(f" [INFO] Selfie shape: {me.shape}")
     crowd, old_shape = open_img(input_urls["crowd"]["url"], biggest=MAX_SIZE_CROWD)
     print(f" [INFO] Crowd shape: {crowd.shape}")
     if "friend" in input_urls:
         friend, _ = open_img(input_urls["friend"]["url"], biggest=MAX_SIZE_SELFIE)
+        if "points" in input_urls["friend"]:
+            points_friend = input_urls["friend"]["points"]
         print(f" [INFO] Friend photo shape: {friend.shape}")
 
     start = time.time() 
     #mix
-    result = processor.run(crowd, [(me, None), (friend, None)])
+    result = processor.run(crowd, [(me, points_me), 
+                                   (friend, points_friend)])
     CROWD, result_bboxs = insert_face(result, crowd)
     responses["bboxs"] = str(result_bboxs)
     if result_bboxs is None:
