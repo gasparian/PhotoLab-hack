@@ -352,7 +352,7 @@ def hello_world():
 @app.route('/create_mix',  methods=['GET', 'POST'])
 def create_mix(): 
     responses = {} 
-    friend, points_me, points_friend = None
+    friend, points_me, points_friend = None, None, None
     processor = preprocess_img(max_dst_boxes=15, embeddings_max_iters=2, n_jobs=2)
     
     input_urls = json.loads(request.values["data"])
