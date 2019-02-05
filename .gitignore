@@ -1,5 +1,6 @@
 /data
-/static
+/static/answer.jpeg
+/static/result.jpeg
 /__pycache__
 .ipynb_checkpoints
 /images_crowd
