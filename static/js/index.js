@@ -143,20 +143,19 @@ function pushFacePhoto(photo) {
 
     var img = new Image()
     img.addEventListener('load', function () {
-        var maxHeight = window.innerHeight * 0.3
+        var maxHeight = (body.getBoundingClientRect().height - 20) / 2
         var maxWidth = body.getBoundingClientRect().width
 
         var width = img.width
         var height = img.height
 
         var scale = img.width > maxWidth ? maxWidth / img.width : 1
-        width *= scale
-        height *= scale
-        if (height > maxHeight) {
-            scale = maxHeight / height
-            height *= scale
-            width *= scale
+        if (height * scale > maxHeight) {
+            scale *= maxHeight / (height * scale)
         }
+
+        height *= scale
+        width *= scale
 
         var canvas = document.createElement('canvas')
         canvas.width = width
@@ -181,8 +180,9 @@ function pushFacePhoto(photo) {
                 var pinchZoom = new PinchZoomCanvas({
                     canvas: canvas,
                     path: img.src,
+                    imgObject: img,
                     momentum: true,
-                    /*onClick: function (touch) {
+                    onClick: function (touch) {
                         var touchX = touch.pageX - pinchZoom.offeset.x
                         var touchY = touch.pageY - pinchZoom.offeset.y
 
@@ -204,19 +204,43 @@ function pushFacePhoto(photo) {
                             touches = newTouches
                         }
                         console.log('click', touch, canvas.getBoundingClientRect(), pinchZoom)
-                    },*/
+                    },
                     onRender: function () {
+                        // TODO: render is valid. How to place NEW points correctly, when zoomed?
                         touches.forEach(function (touch) {
-                            var x = touch.x
-                            var y = touch.y
-                            x *= 2
-                            y *= 2
+                            var x = touch.x / scale
+                            var y = touch.y / scale
 
-                            x -= pinchZoom.position.x
-                            y -= pinchZoom.position.y
+                            x *= pinchZoom.scale.x
+                            y *= pinchZoom.scale.y
 
-                            //x *= pinchZoom.scale.x
-                            //y *= pinchZoom.scale.y
+                            x += pinchZoom.position.x
+                            y += pinchZoom.position.y
+
+                            /**
+
+                            var dx = pinchZoom.position.x
+                    var dy = pinchZoom.position.y
+                    var dw = pinchZoom.scale.x * pinchZoom.imgTexture.width
+                    var dh = pinchZoom.scale.y * pinchZoom.imgTexture.height
+                    pinchZoom.context.fillStyle = 'rgba(255, 255, 255, 0.6)'
+                    pinchZoom.context.fillRect(dx, dy, dw, dh)
+
+                    data.bboxs.forEach(function (bbox) {
+                        var x = bbox[0]
+                        var y = bbox[1]
+                        var w = bbox[2] - x
+                        var h = bbox[3] - y
+                        var bdx = dx + x * pinchZoom.scale.x
+                        var bdy = dy + y * pinchZoom.scale.y
+                        var bdw = w * pinchZoom.scale.x
+                        var bdh = h * pinchZoom.scale.y
+                        pinchZoom.context.drawImage(pinchZoom.imgTexture, x, y, w, h, bdx, bdy, bdw, bdh)
+                        pinchZoom.context.lineWidth = 2.5 * pinchZoom.scale.x
+                        pinchZoom.context.strokeStyle = '#2a79ff'
+                        pinchZoom.context.roundRect(bdx, bdy, bdw, bdh, 2 * pinchZoom.scale.x).stroke()
+
+                            */
                             
                             ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
                             ctx.beginPath()
@@ -243,7 +267,6 @@ function pushFacePhoto(photo) {
                     facesDiv.removeChild(containerDiv)
                     updateFacesScreenUI()
                 })
-                remove.innerHTML = 'X'
                 containerDiv.appendChild(remove)
             }, 10)
         }, 200)
@@ -363,15 +386,15 @@ function mixSelectedPhotos() {
             return
         }
 
-        mixBtn.classList.remove('loading')
-
         if (data.error) {
+            mixBtn.classList.remove('loading')
+
             if (data.reason === 'no_faces') {
                 showAlert('Oops!', 'Seems like there are no faces on some of your photos. Please, check your photos.', [{
                     text: 'OK'
                 }])
             } else {
-                showAlert('Oops!', 'Seems like smth went wrong on our side. Please, try again.', [{
+                showAlert('Oops!', 'Seems like smth went wrong on our side. Please, try again. If problem persists, please, try another photos.', [{
                     text: 'Cancel',
                     passive: true
                 }, {
@@ -380,7 +403,12 @@ function mixSelectedPhotos() {
                 }])
             }
         } else {
-            openResultScreen(data)
+            var img = new Image()
+            img.addEventListener('load', function () {
+                mixBtn.classList.remove('loading')
+                openResultScreen(data, img)
+            })
+            img.src = data.url
         }
     })
     .catch(function (error) {
@@ -400,7 +428,7 @@ function mixSelectedPhotos() {
     })
 }
 
-function openResultScreen(data) {
+function openResultScreen(data, imgObject) {
     var pinchZoom
     var destroyed = false
 
@@ -434,6 +462,7 @@ function openResultScreen(data) {
         pinchZoom = new PinchZoomCanvas({
             canvas: canvas,
             path: data.url,
+            imgObject: imgObject,
             momentum: true,
             onRender: function () {
                 if (answerIsVisible) {
@@ -461,6 +490,10 @@ function openResultScreen(data) {
                 }
             }
         })
+
+        setTimeout(function () {
+            canvas.style.opacity = '1'
+        }, 100)
     }, 200)
 
     pushScreen('resultScreen', function () {

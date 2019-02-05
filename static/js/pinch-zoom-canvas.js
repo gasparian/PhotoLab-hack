@@ -86,15 +86,20 @@
 		this.render       = this.render.bind(this);
 
 		// Load the image
-		this.imgTexture = new Image();
-		this.imgTexture.onload = function(){
-			if ( this.destroyed )
-				return;
+		if (options.imgObject) {
+			this.imgTexture = options.imgObject
 			requestAnimationFrame(this.render);
 			this._setEventListeners();
-		}.bind(this);
-		this.imgTexture.src = options.path;
-
+		} else {
+			this.imgTexture = new Image();
+			this.imgTexture.onload = function(){
+				if ( this.destroyed )
+					return;
+				requestAnimationFrame(this.render);
+				this._setEventListeners();
+			}.bind(this);
+			this.imgTexture.src = options.path;
+		}
 	};
 
 	PinchZoomCanvas.prototype = {
