@@ -8,8 +8,8 @@ import requests
 from io import BytesIO
 from shutil import rmtree
 import multiprocessing
-from datetime import timedelta
-from functools import update_wrapper
+from datetime import timedelta, datetime
+from functools import update_wrapper, wraps
 import json
 
 import dlib
@@ -323,6 +323,18 @@ def crossdomain(origin=None, methods=None, headers=None,
         return update_wrapper(wrapped_function, f)
     return decorator
 
+def nocache(view):
+    @wraps(view)
+    def no_cache(*args, **kwargs):
+        response = make_response(view(*args, **kwargs))
+        response.headers['Last-Modified'] = datetime.now()
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '-1'
+        return response
+        
+    return update_wrapper(no_cache, view)
+
 def prepare_response(responses):
 
     for key in responses:
@@ -358,12 +370,14 @@ app = Flask(__name__)
 print(f" [INFO] Server loaded! {int((time.time() - load_start) * 1000)} ms. ")
 
 @app.route('/')
+@nocache
 def starting_page():
     print(" [INFO] New session created! ")
     return render_template('index.html')
 
 @app.route('/create_mix',  methods=['GET', 'POST'])
 @crossdomain(origin='*')
+@nocache
 def create_mix(): 
     responses = {"error":False}
     try:
@@ -390,7 +404,7 @@ def create_mix():
         CROWD, result_bboxs = insert_face(result, crowd,
                                           max(old_shape) / MAX_SIZE_CROWD)
         if result_bboxs is None:
-            print(" [INFO] Something went wrong :( ")
+            print(" [INFO] Seems like we can't find any faces on one of the photos :( ")
             responses["error"] = True
             responses["reason"] = "no_faces"
             return prepare_response(responses)
