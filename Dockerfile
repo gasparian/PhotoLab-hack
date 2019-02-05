@@ -90,9 +90,13 @@ RUN pip install requests \
                 awscli && \
     mkdir /root/.aws
 
-COPY ./js/* /root/photolab_hack/js/
+
+RUN mkdir /root/photolab_hack/static && \
+    export AWS_PROFILE=photo-hack-gene
+COPY ./static/js/* /root/photolab_hack/static/js/
+COPY ./static/css/* /root/photolab_hack/static/css/
+
 COPY ./models/* /root/photolab_hack/models/
-COPY ./static/* /root/photolab_hack/static/
 COPY ./templates/* /root/photolab_hack/templates/
 COPY ./Dockerfile /root/photolab_hack/
 COPY ./app.py /root/photolab_hack/
@@ -101,8 +105,6 @@ COPY ./face_swap.py /root/photolab_hack/
 COPY ./run_docker.sh /root/photolab_hack/
 COPY ./start.sh /root/photolab_hack/
 COPY ./utils.py /root/photolab_hack/
-
-RUN export AWS_PROFILE=photo-hack-gene
 
 ENTRYPOINT ["bash"]
 #CMD ["/root/photolab_hack/start.sh"]

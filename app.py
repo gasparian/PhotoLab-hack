@@ -274,7 +274,7 @@ def insert_face(result, CROWD, scale):
             int(x*scale), 
             int(y*scale), 
             int((x+w)*scale), 
-            int((y+h)*scale]))
+            int((y+h)*scale)])
         CROWD[y:y+h, x:x+w] = output
     
     return CROWD, result_bboxs
