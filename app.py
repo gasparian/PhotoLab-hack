@@ -407,32 +407,31 @@ def create_mix():
             print(" [INFO] Seems like we can't find any faces on one of the photos :( ")
             responses["error"] = True
             responses["reason"] = "no_faces"
-            return prepare_response(responses)
 
-        responses["bboxs"] = result_bboxs
+        else:
+            responses["bboxs"] = result_bboxs
 
-        crowd = cv2.resize(crowd, old_shape, Image.LANCZOS)
-        #crowd = cv2.cvtColor(crowd, cv2.COLOR_BGR2RGB)
-        retval, buff = cv2.imencode('.jpeg', crowd)
+            crowd = cv2.resize(crowd, old_shape, Image.LANCZOS)
+            #crowd = cv2.cvtColor(crowd, cv2.COLOR_BGR2RGB)
+            retval, buff = cv2.imencode('.jpeg', crowd)
 
-        s3 = boto3.client('s3')
-        fname = PATH+"/"+str(random.randint(0,10e12))+".jpeg"
+            s3 = boto3.client('s3')
+            fname = PATH+"/"+str(random.randint(0,10e12))+".jpeg"
 
-        with BytesIO(buff) as f:
-            s3.upload_fileobj(f, BUCKET_NAME, fname, 
-                              ExtraArgs={"ACL":'public-read', "StorageClass":'STANDARD'})
-        responses["url"] = f"https://storage.ws.pho.to/{fname}"
+            with BytesIO(buff) as f:
+                s3.upload_fileobj(f, BUCKET_NAME, fname, 
+                                  ExtraArgs={"ACL":'public-read', "StorageClass":'STANDARD'})
+            responses["url"] = f"https://storage.ws.pho.to/{fname}"
 
-        print(f" [INFO] Time consumed:  {int((time.time() - start) * 1000)} ms. ")
+            print(f" [INFO] Time consumed:  {int((time.time() - start) * 1000)} ms. ")
 
-        gc.collect()
-
-        return prepare_response(responses)
+            gc.collect()
 
     except Exception as e:
         print(e)
         responses["error"] = True
         responses["reason"] = "other"
-        return prepare_response(responses)
+
+    return prepare_response(responses)
         
 
