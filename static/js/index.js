@@ -11,13 +11,12 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
   return this;
 }
 
-// TODO: онбординг?
-// TODO: заглушки на первом экране, что картинка грузится? а то тупо скачет
-// TODO: другие фотки толпы, разнообразные
+// TODO: онбординг? будет позже
+// TODO: отметка лиц на фотках прям на первом экране
 // TODO: тексты для шаринга
-// TODO: модалка какая то для обработки ошибок?
+// TODO: query params для скриптов! на каждый чендж
 
-
+var ONBOARDING_KEY = 'ONBOARDING1'
 var facePhotoId = 0
 var mixId = 0
 var facesPhotos = []
@@ -81,6 +80,11 @@ function popScreen() {
 
 function resetScreens() {
     facesDiv.innerHTML = ''
+    facesPhotos.forEach(function (photo) {
+        if (photo.destroy) {
+            photo.destroy()
+        }
+    })
     facesPhotos.length = 0
     crowdPhoto = {
         url: '',
@@ -111,7 +115,6 @@ function openFacesScreen() {
 function selectFacePhoto() {
     selectNativePhoto(function (photo) {
         pushFacePhoto(photo)
-
         updateFacesScreenUI()
     })
 }
@@ -126,34 +129,105 @@ function selectCrowdPhoto() {
 function pushFacePhoto(photo) {
     facesPhotos.push(photo)
 
-    var div = document.createElement('div')
-    div.classList.add('faceBlock')
+    var body = document.querySelector('#facesScreen .contentBody')
+
+    var spinner = document.createElement('div')
+    spinner.classList.add('geneSpinner')
+    spinner.innerHTML = 'Loading...'
+
+    var containerDiv = document.createElement('div')
+    containerDiv.classList.add('facePhotoContainer')
+    containerDiv.appendChild(spinner)
+
+    facesDiv.appendChild(containerDiv)
 
     var img = new Image()
+    img.addEventListener('load', function () {
+        var maxHeight = window.innerHeight * 0.3
+        var maxWidth = body.getBoundingClientRect().width
+
+        var width = img.width
+        var height = img.height
+
+        var scale = img.width > maxWidth ? maxWidth / img.width : 1
+        width *= scale
+        height *= scale
+        if (height > maxHeight) {
+            scale = maxHeight / height
+            height *= scale
+            width *= scale
+        }
+
+        var canvas = document.createElement('canvas')
+        canvas.width = width
+        canvas.height = height
+        canvas.style.width = width + 'px'
+        canvas.style.height = height + 'px'
+
+        var ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, width, height)
+
+        containerDiv.style.width = width + 'px'
+        containerDiv.style.height = height + 'px'
+
+        setTimeout(function () {
+            containerDiv.innerHTML = ''
+            containerDiv.appendChild(canvas)
+            setTimeout(function () {
+                canvas.style.opacity = '1'
+
+                // TODO: clicks on faces
+                //var touches = []
+                var pinchZoom = new PinchZoomCanvas({
+                    canvas: canvas,
+                    path: img.src,
+                    momentum: true,
+                    /*onClick: function (touch) {
+                        touches.push(touch)
+                        console.log('click', touch, canvas.getBoundingClientRect(), pinchZoom)
+                    },*/
+                    onRender: function () {
+                        /*touches.forEach(function (touch) {
+                            var x = touch.pageX - pinchZoom.offeset.x
+                            var y = touch.pageY - pinchZoom.offeset.x
+                            x *= 2
+                            y *= 2
+                            x *= pinchZoom.scale.x
+                            y *= pinchZoom.scale.y
+                            
+                            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
+                            ctx.beginPath()
+                            ctx.arc(x, y, 14, 0, 2 * Math.PI)
+                            ctx.fill()
+
+                            ctx.fillStyle = '#2a79ff'
+                            ctx.beginPath()
+                            ctx.arc(x, y, 10, 0, 2 * Math.PI)
+                            ctx.fill()
+                        })*/
+                    }
+                })
+                photo.destroy = function () {
+                    pinchZoom.destroy()
+                }
+                var remove = document.createElement('div')
+                remove.classList.add('facePhotoContainerRemove')
+                remove.addEventListener('click', function () {
+                    if (pinchZoom) {
+                        pinchZoom.destroy()
+                    }
+                    facesPhotos = facesPhotos.filter(function (p) { return p.id !== photo.id })
+                    facesDiv.removeChild(containerDiv)
+                    updateFacesScreenUI()
+                })
+                remove.innerHTML = 'X'
+                containerDiv.appendChild(remove)
+            }, 10)
+        }, 200)
+    })
     img.src = photo.url
-    div.appendChild(img)
 
-    var edit = document.createElement('div')
-    edit.classList.add('faceBlockEdit')
-    edit.addEventListener('click', function () {
-        selectNativePhoto(function (photo) {
-            img.src = photo.url
-        })
-    })
-    edit.innerHTML = 'Edit'
-    div.appendChild(edit)
-
-    var remove = document.createElement('div')
-    remove.classList.add('faceBlockRemove')
-    remove.addEventListener('click', function () {
-        facesPhotos = facesPhotos.filter(function (p) { return p.id !== photo.id })
-        facesDiv.removeChild(div)
-        updateFacesScreenUI()
-    })
-    remove.innerHTML = 'X'
-    div.appendChild(remove)
-
-    facesDiv.appendChild(div)
+    facesDiv.appendChild(containerDiv)
 }
 
 function updateFacesScreenUI() {
@@ -267,7 +341,25 @@ function mixSelectedPhotos() {
         }
 
         mixBtn.classList.remove('loading')
-        openResultScreen(data)
+
+        var wasError = typeof data.error === 'string' ? data.error === 'True' : data.error
+        if (wasError) {
+            if (data.reason === 'no_faces') {
+                showAlert('Oops!', 'Seems like there are no faces on some of your photos. Please, check your photos.', [{
+                    text: 'OK'
+                }])
+            } else {
+                showAlert('Oops!', 'Seems like smth went wrong on our side. Please, try again.', [{
+                    text: 'Cancel',
+                    passive: true
+                }, {
+                    text: 'Try again',
+                    onClick: mixSelectedPhotos
+                }])
+            }
+        } else {
+            openResultScreen(data)
+        }
     })
     .catch(function (error) {
         if (thisMixId !== mixId) {
@@ -292,6 +384,11 @@ function openResultScreen(data) {
     var answerIsVisible = false
     var onAnswerClick = function () {
         answerIsVisible = !answerIsVisible
+        if (answerIsVisible) {
+            answerBtn.classList.add('answerIsVisible')
+        } else {
+            answerBtn.classList.remove('answerIsVisible')
+        }
     }
     answerBtn.addEventListener('click', onAnswerClick)
 
@@ -309,28 +406,28 @@ function openResultScreen(data) {
             canvas: canvas,
             path: data.url,
             momentum: true,
-            onRender: function (zis) {
+            onRender: function () {
                 if (answerIsVisible) {
-                    var dx = zis.position.x
-                    var dy = zis.position.y
-                    var dw = zis.scale.x * zis.imgTexture.width
-                    var dh = zis.scale.y * zis.imgTexture.height
-                    zis.context.fillStyle = 'rgba(255, 255, 255, 0.6)'
-                    zis.context.fillRect(dx, dy, dw, dh)
+                    var dx = pinchZoom.position.x
+                    var dy = pinchZoom.position.y
+                    var dw = pinchZoom.scale.x * pinchZoom.imgTexture.width
+                    var dh = pinchZoom.scale.y * pinchZoom.imgTexture.height
+                    pinchZoom.context.fillStyle = 'rgba(255, 255, 255, 0.6)'
+                    pinchZoom.context.fillRect(dx, dy, dw, dh)
 
                     data.bboxs.forEach(function (bbox) {
                         var x = bbox[0]
                         var y = bbox[1]
                         var w = bbox[2] - x
                         var h = bbox[3] - y
-                        var bdx = dx + x * zis.scale.x
-                        var bdy = dy + y * zis.scale.y
-                        var bdw = w * zis.scale.x
-                        var bdh = h * zis.scale.y
-                        zis.context.drawImage(zis.imgTexture, x, y, w, h, bdx, bdy, bdw, bdh)
-                        zis.context.lineWidth = 2.5 * zis.scale.x
-                        zis.context.strokeStyle = '#2a79ff'
-                        zis.context.roundRect(bdx, bdy, bdw, bdh, 2 * zis.scale.x).stroke()
+                        var bdx = dx + x * pinchZoom.scale.x
+                        var bdy = dy + y * pinchZoom.scale.y
+                        var bdw = w * pinchZoom.scale.x
+                        var bdh = h * pinchZoom.scale.y
+                        pinchZoom.context.drawImage(pinchZoom.imgTexture, x, y, w, h, bdx, bdy, bdw, bdh)
+                        pinchZoom.context.lineWidth = 2.5 * pinchZoom.scale.x
+                        pinchZoom.context.strokeStyle = '#2a79ff'
+                        pinchZoom.context.roundRect(bdx, bdy, bdw, bdh, 2 * pinchZoom.scale.x).stroke()
                     })
                 }
             }
@@ -339,6 +436,7 @@ function openResultScreen(data) {
 
     pushScreen('resultScreen', function () {
         destroyed = true
+        answerBtn.classList.remove('answerIsVisible')
         answerBtn.removeEventListener('click', onAnswerClick)
         shareBtn.removeEventListener('click', onShareClick)
         if (pinchZoom) {
@@ -355,9 +453,6 @@ function shareResult(url) {
         } else {
             // not shared
         }
-
-        // TODO: loading?
-        resetScreens()
     }
     location.href = 'callback:nativeShare?og_image=' + encodeURIComponent(url) +
         '&og_title=' + encodeURIComponent('Title') +
@@ -365,14 +460,83 @@ function shareResult(url) {
         '&func=' + callbackName
 }
 
-openStartScreen()
+function safeExec(callback, defaultValue) {
+    try {
+        return callback()
+    } catch(e) {
+        return defaultValue
+    }
+}
 
+function showAlert(title, description, buttons) {
+    var titleDiv = document.createElement('div')
+    titleDiv.classList.add('geneAlertTitle')
+    titleDiv.innerHTML = title
+
+    var descriptionDiv = document.createElement('div')
+    descriptionDiv.classList.add('geneAlertDescription')
+    descriptionDiv.innerHTML = description
+
+    var buttonsDiv = document.createElement('div')
+    buttonsDiv.classList.add('geneAlertButtons')
+    buttons.forEach(function (button) {
+        var btnDiv = document.createElement('div')
+        btnDiv.classList.add('geneBtn')
+        if (button.passive) {
+            btnDiv.classList.add('bordered')
+        }
+        btnDiv.innerHTML = button.text
+        btnDiv.addEventListener('click', function () {
+            if (button.onClick) {
+                button.onClick()
+            }
+            overlay.style.opacity = '0'
+            setTimeout(function () {
+                document.body.removeChild(overlay)
+            }, 100)
+        })
+        buttonsDiv.appendChild(btnDiv)
+    })
+
+    var box = document.createElement('div')
+    box.classList.add('geneAlert')
+    box.appendChild(titleDiv)
+    box.appendChild(descriptionDiv)
+    box.appendChild(buttonsDiv)
+
+    var overlay = document.createElement('div')
+    overlay.classList.add('geneOverlay')
+    overlay.appendChild(box)
+    document.body.appendChild(overlay)
+
+    setTimeout(function () {
+        overlay.style.opacity = '1'
+    }, 10)
+}
+
+// subscribe crowd photos click
 var crowdPhotos = document.querySelectorAll('.crowdList img')
 for (var i = 0; i < crowdPhotos.length; i++) {
-    var photo = crowdPhotos[i]
-    photo.addEventListener('click', function () {
-        crowdPhoto.url = photo.src
-        openCookingScreen()
+    ;(function (i) {
+        var photo = crowdPhotos[i]
+            photo.addEventListener('click', function () {
+                crowdPhoto.url = photo.src
+                openCookingScreen()
+            })
+    }(i));
+}
+
+// open first screen
+var onboardWasShown = safeExec(function () {
+    return !!localStorage.getItem(ONBOARDING_KEY)
+}, false)
+if (onboardWasShown) {
+    openFacesScreen()
+} else {
+    openStartScreen()
+
+    safeExec(function () {
+        localStorage.setItem(ONBOARDING_KEY, true)
     })
 }
 

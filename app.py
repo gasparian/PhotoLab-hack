@@ -228,7 +228,7 @@ class preprocess_img:
 def insert_face(result, CROWD, scale):
     
     if result is None:
-        return (None, None)
+        return None
  
     result_bboxs = []
     for faces in result:
@@ -274,7 +274,7 @@ def insert_face(result, CROWD, scale):
             int(x*scale), 
             int(y*scale), 
             int((x+w)*scale), 
-            int((y+h)*scale)])
+            int((y+h)*scale]))
         CROWD[y:y+h, x:x+w] = output
     
     return CROWD, result_bboxs
@@ -323,14 +323,6 @@ def crossdomain(origin=None, methods=None, headers=None,
         return update_wrapper(wrapped_function, f)
     return decorator
 
-def prepare_response(responses):
-    for key in responses:
-        convertDtypeRec(responses[key])
-
-    responses = jsonify(responses)
-    responses.status_code = 200
-    return response 
-
 #######################################################################################################
 
 
@@ -360,64 +352,61 @@ print(f" [INFO] Server loaded! {int((time.time() - load_start) * 1000)} ms. ")
 @app.route('/')
 def starting_page():
     print(" [INFO] New session created! ")
-    return render_template('index3.html')
+    return render_template('index.html')
 
 @app.route('/create_mix',  methods=['GET', 'POST'])
 @crossdomain(origin='*')
 def create_mix(): 
-    responses = {"error":False}
-    try:
-        friend, points_me, points_friend = None, None, None
-        processor = preprocess_img(max_dst_boxes=15, embeddings_max_iters=2, n_jobs=2)
+    responses = {} 
+    friend, points_me, points_friend = None, None, None
+    processor = preprocess_img(max_dst_boxes=15, embeddings_max_iters=2, n_jobs=2)
     
-        input_urls = json.loads(request.values["data"])
-        me, _ = open_img(input_urls["me"]["url"], biggest=MAX_SIZE_SELFIE)
-        if "points" in input_urls["me"]:
-            points_me = input_urls["me"]["points"]
-        print(f" [INFO] Selfie shape: {me.shape}")
-        crowd, old_shape = open_img(input_urls["crowd"]["url"], biggest=MAX_SIZE_CROWD)
-        print(f" [INFO] Crowd shape: {crowd.shape}")
-        if "friend" in input_urls:
-            friend, _ = open_img(input_urls["friend"]["url"], biggest=MAX_SIZE_SELFIE)
-            if "points" in input_urls["friend"]:
-                points_friend = input_urls["friend"]["points"]
-            print(f" [INFO] Friend photo shape: {friend.shape}")
+    input_urls = json.loads(request.values["data"])
+    me, _ = open_img(input_urls["me"]["url"], biggest=MAX_SIZE_SELFIE)
+    if "points" in input_urls["me"]:
+        points_me = input_urls["me"]["points"]
+    print(f" [INFO] Selfie shape: {me.shape}")
+    crowd, old_shape = open_img(input_urls["crowd"]["url"], biggest=MAX_SIZE_CROWD)
+    print(f" [INFO] Crowd shape: {crowd.shape}")
+    if "friend" in input_urls:
+        friend, _ = open_img(input_urls["friend"]["url"], biggest=MAX_SIZE_SELFIE)
+        if "points" in input_urls["friend"]:
+            points_friend = input_urls["friend"]["points"]
+        print(f" [INFO] Friend photo shape: {friend.shape}")
 
-        #mix
-        start = time.time() 
-        result = processor.run(crowd, [(me, points_me), 
-                                       (friend, points_friend)])
-        CROWD, result_bboxs = insert_face(result, crowd,
-                                          max(old_shape) / MAX_SIZE_CROWD)
-        responses["bboxs"] = result_bboxs
-        if result_bboxs is None:
-            print(" [INFO] Something went wrong :( ")
-            responses["error"] = True
-            responses["reason"] = "no_faces"
-            return prepare_response(responses)
+    start = time.time() 
+    #mix
+    result = processor.run(crowd, [(me, points_me), 
+                                   (friend, points_friend)])
+    CROWD, result_bboxs = insert_face(result, crowd,
+                                      max(old_shape) / MAX_SIZE_CROWD)
+    responses["bboxs"] = result_bboxs
+    if result_bboxs is None:
+        print(" [INFO] Something went wrong :( ")
+        #return render_template('index.html', created_success=False, init=True)
 
-        crowd = cv2.resize(crowd, old_shape, Image.LANCZOS)
-        #crowd = cv2.cvtColor(crowd, cv2.COLOR_BGR2RGB)
-        retval, buff = cv2.imencode('.jpeg', crowd)
+    crowd = cv2.resize(crowd, old_shape, Image.LANCZOS)
+    #crowd = cv2.cvtColor(crowd, cv2.COLOR_BGR2RGB)
+    retval, buff = cv2.imencode('.jpeg', crowd)
 
-        s3 = boto3.client('s3')
-        fname = PATH+"/"+str(random.randint(0,10e12))+".jpeg"
+    s3 = boto3.client('s3')
+    fname = PATH+"/"+str(random.randint(0,10e12))+".jpeg"
 
-        with BytesIO(buff) as f:
-            s3.upload_fileobj(f, BUCKET_NAME, fname, 
-                              ExtraArgs={"ACL":'public-read', "StorageClass":'STANDARD'})
+    with BytesIO(buff) as f:
+        s3.upload_fileobj(f, BUCKET_NAME, fname, 
+                          ExtraArgs={"ACL":'public-read', "StorageClass":'STANDARD'})
 
-        responses["url"] = f"https://storage.ws.pho.to/{fname}"
+    responses["url"] = f"https://storage.ws.pho.to/{fname}"
 
-        print(f" [INFO] Time consumed:  {int((time.time() - start) * 1000)} ms. ")
- 
-        gc.collect()
+    print(f" [INFO] Time consumed:  {int((time.time() - start) * 1000)} ms. ")
 
-        return prepare_response(responses)
+    for key in responses:
+        convertDtypeRec(responses[key])
 
-    except Exception as e: 
-        print(e)
-        responses["error"] = True
-        responses["reason"] = "because fuck you, that's why"
-        return prepare_response(responses)
+    responses = jsonify(responses)
+    responses.status_code = 200 
+
+    gc.collect()
+
+    return responses
 

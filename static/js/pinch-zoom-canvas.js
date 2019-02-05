@@ -153,7 +153,7 @@
 				this.scale.y * this.imgTexture.height);
 
 			if (this.__options.onRender) {
-				this.__options.onRender(this)
+				this.__options.onRender()
 			}
 
 			if ( firstDrawImage )
@@ -393,6 +393,7 @@
 				friction: 0.96,
 				multiplier: 2,
 				update: function(x, y) {
+					clearTimeout(this.clickTimeoutId)
 					this.move(x, y);
 				}.bind(this)
 			});
@@ -428,7 +429,13 @@
 		// Events
 		//
 
-		onTouchStart: function () {
+		onTouchStart: function (e) {
+			if (e.targetTouches && e.targetTouches[0]) {
+				this.touchStartX = e.targetTouches[0].pageX
+				this.touchStartY = e.targetTouches[0].pageY
+				this.touchStartTime = Date.now()
+			}
+
 			this.lastX          = null;
 			this.lastY          = null;
 			this.lastZoomScale  = null;
@@ -459,6 +466,8 @@
 		},
 
 		onTouchEnd: function(e) {
+			clearTimeout(this.clickTimeoutId)
+
 			// Check if touchend
 			if ( this.doubletap && !this.startZoom && e.changedTouches.length > 0 ){
 				var touch     = e.changedTouches[0]
@@ -466,7 +475,7 @@
 				var now       = new Date().getTime();
 				var lastTouch = this.lastTouchTime || now + 1 /** the first time this will make delta a negative number */;
 				var delta     = now - lastTouch;
-				if ( distance >= 0 && distance < this.threshold && delta > 0 && delta < 500 ){
+				if ( distance >= 0 && distance < this.threshold && delta > 0 && delta < 300 ) {
 					this.lastTouchTime  = null;
 					this.lastTouchPageX = 0;
 					this.startZoom      = true;
@@ -478,6 +487,17 @@
 				}else{
 					this.lastTouchTime = now;
 					this.lastTouchPageX = touch.pageX;
+
+					this.clickTimeoutId = setTimeout(function () {
+						var dx = touch.pageX - this.touchStartX
+						var dy = touch.pageY - this.touchStartY
+						var dt = Date.now() - this.touchStartTime
+						if (dt < 600 && dx < 5 && dy < 5) {
+							if (this.__options.onClick) {
+								this.__options.onClick(touch)
+							}
+						}
+					}.bind(this), 300)
 				}
 			}else{
 				this.lastTouchTime  = null;
