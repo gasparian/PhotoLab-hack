@@ -270,7 +270,11 @@ def insert_face(result, CROWD, scale):
         output = cv2.seamlessClone(warped_src_face, dst_face, mask, center, cv2.NORMAL_CLONE)
 
         x, y, w, h = dst_shape
-        result_bboxs.append([x*scale, y*scale, (x+w)*scale, (y+h)*scale])
+        result_bboxs.append([
+            int(x*scale), 
+            int(y*scale), 
+            int((x+w)*scale), 
+            int((y+h)*scale]))
         CROWD[y:y+h, x:x+w] = output
     
     return CROWD, result_bboxs
@@ -346,7 +350,8 @@ app = Flask(__name__)
 print(f" [INFO] Server loaded! {int((time.time() - load_start) * 1000)} ms. ")
 
 @app.route('/')
-def hello_world():
+def starting_page():
+    print(" [INFO] New session created! ")
     return render_template('index3.html')
 
 @app.route('/create_mix',  methods=['GET', 'POST'])
