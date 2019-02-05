@@ -1,2 +1,10 @@
 #!/bin/bash
-gunicorn --bind=0.0.0.0:8000 --workers=2 -k gthread --thread=1  --timeout 90 --chdir /root/photolab_hack app:app --reload --max-requests 10
+gunicorn --bind=0.0.0.0:8000 \
+         --workers=4 \
+         -k gthread \
+         --thread=2 \
+         --timeout 30 \
+         --graceful-timeout 30 \
+         --chdir /root/photolab_hack app:app \
+         --preload \
+         --max-requests 10
