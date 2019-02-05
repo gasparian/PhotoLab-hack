@@ -177,23 +177,46 @@ function pushFacePhoto(photo) {
                 canvas.style.opacity = '1'
 
                 // TODO: clicks on faces
-                //var touches = []
+                var touches = []
                 var pinchZoom = new PinchZoomCanvas({
                     canvas: canvas,
                     path: img.src,
                     momentum: true,
                     /*onClick: function (touch) {
-                        touches.push(touch)
+                        var touchX = touch.pageX - pinchZoom.offeset.x
+                        var touchY = touch.pageY - pinchZoom.offeset.y
+
+                        var newTouches = []
+                        for (var i = 0; i < touches.length; i++) {
+                            var dx = touchX - touches[i].x
+                            var dy = touchY - touches[i].y
+                            var d = Math.sqrt(dx * dx + dy * dy)
+                            if (d > 10) {
+                                newTouches.push(touches[i])
+                            }
+                        }
+                        if (newTouches.length === touches.length) {
+                            touches.push({
+                                x: touchX,
+                                y: touchY
+                            })
+                        } else {
+                            touches = newTouches
+                        }
                         console.log('click', touch, canvas.getBoundingClientRect(), pinchZoom)
                     },*/
                     onRender: function () {
-                        /*touches.forEach(function (touch) {
-                            var x = touch.pageX - pinchZoom.offeset.x
-                            var y = touch.pageY - pinchZoom.offeset.x
+                        touches.forEach(function (touch) {
+                            var x = touch.x
+                            var y = touch.y
                             x *= 2
                             y *= 2
-                            x *= pinchZoom.scale.x
-                            y *= pinchZoom.scale.y
+
+                            x -= pinchZoom.position.x
+                            y -= pinchZoom.position.y
+
+                            //x *= pinchZoom.scale.x
+                            //y *= pinchZoom.scale.y
                             
                             ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
                             ctx.beginPath()
@@ -204,7 +227,7 @@ function pushFacePhoto(photo) {
                             ctx.beginPath()
                             ctx.arc(x, y, 10, 0, 2 * Math.PI)
                             ctx.fill()
-                        })*/
+                        })
                     }
                 })
                 photo.destroy = function () {
@@ -342,8 +365,7 @@ function mixSelectedPhotos() {
 
         mixBtn.classList.remove('loading')
 
-        var wasError = typeof data.error === 'string' ? data.error === 'True' : data.error
-        if (wasError) {
+        if (data.error) {
             if (data.reason === 'no_faces') {
                 showAlert('Oops!', 'Seems like there are no faces on some of your photos. Please, check your photos.', [{
                     text: 'OK'
@@ -366,8 +388,15 @@ function mixSelectedPhotos() {
             return
         }
 
-        // TODO: show error + try again
         mixBtn.classList.remove('loading')
+
+        showAlert('Oops!', 'Seems like smth went wrong on our side. Please, try again.', [{
+            text: 'Cancel',
+            passive: true
+        }, {
+            text: 'Try again',
+            onClick: mixSelectedPhotos
+        }])
     })
 }
 
