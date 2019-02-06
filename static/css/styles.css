@@ -503,7 +503,7 @@ body, html {
     font-size: 5px;
 }
 
-.facePhotoContainer canvas {
+.facePhotoContainer img, .facePhotoContainer canvas {
     opacity: 0;
     -webkit-transition: opacity 0.2s ease-in;
     -o-transition: opacity 0.2s ease-in;
@@ -512,11 +512,11 @@ body, html {
 
 .facePhotoContainerRemove {
     position: absolute;
-    top: -20px;
-    right: -20px;
+    top: 5px;
+    right: 5px;
     width: 40px;
     height: 40px;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.9);
     border-radius: 50%;
     display: -webkit-box;
     display: -ms-flexbox;
@@ -567,11 +567,6 @@ body, html {
     -webkit-box-align: center;
         -ms-flex-align: center;
             align-items: center;
-}
-
-#facePointsScreen canvas {
-    width: 100%;
-    height: 100%;
 }
 
 #cookingScreen .contentBody {

@@ -12,8 +12,6 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
 }
 
 // TODO: онбординг? будет позже
-// TODO: отметка лиц на фотках прям на первом экране
-// TODO: тексты для шаринга
 // TODO: query params для скриптов! на каждый чендж
 
 var ONBOARDING_KEY = 'ONBOARDING1'
@@ -157,25 +155,30 @@ function pushFacePhoto(photo) {
         height *= scale
         width *= scale
 
-        var canvas = document.createElement('canvas')
+        /*var canvas = document.createElement('canvas')
         canvas.width = width
         canvas.height = height
         canvas.style.width = width + 'px'
         canvas.style.height = height + 'px'
 
         var ctx = canvas.getContext('2d')
-        ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, width, height)
+        ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, width, height)*/
 
         containerDiv.style.width = width + 'px'
         containerDiv.style.height = height + 'px'
+        img.style.width = width + 'px'
+        img.style.height = height + 'px'
 
         setTimeout(function () {
             containerDiv.innerHTML = ''
-            containerDiv.appendChild(canvas)
+            //containerDiv.appendChild(canvas)
+            containerDiv.appendChild(img)
             setTimeout(function () {
+                img.style.opacity = '1'
+                
+                /*
                 canvas.style.opacity = '1'
 
-                // TODO: clicks on faces
                 var touches = []
                 var pinchZoom = new PinchZoomCanvas({
                     canvas: canvas,
@@ -206,7 +209,7 @@ function pushFacePhoto(photo) {
                         console.log('click', touch, canvas.getBoundingClientRect(), pinchZoom)
                     },
                     onRender: function () {
-                        // TODO: render is valid. How to place NEW points correctly, when zoomed?
+                        // WARN: render is valid. How to place NEW points correctly, when zoomed?
                         touches.forEach(function (touch) {
                             var x = touch.x / scale
                             var y = touch.y / scale
@@ -216,31 +219,6 @@ function pushFacePhoto(photo) {
 
                             x += pinchZoom.position.x
                             y += pinchZoom.position.y
-
-                            /**
-
-                            var dx = pinchZoom.position.x
-                    var dy = pinchZoom.position.y
-                    var dw = pinchZoom.scale.x * pinchZoom.imgTexture.width
-                    var dh = pinchZoom.scale.y * pinchZoom.imgTexture.height
-                    pinchZoom.context.fillStyle = 'rgba(255, 255, 255, 0.6)'
-                    pinchZoom.context.fillRect(dx, dy, dw, dh)
-
-                    data.bboxs.forEach(function (bbox) {
-                        var x = bbox[0]
-                        var y = bbox[1]
-                        var w = bbox[2] - x
-                        var h = bbox[3] - y
-                        var bdx = dx + x * pinchZoom.scale.x
-                        var bdy = dy + y * pinchZoom.scale.y
-                        var bdw = w * pinchZoom.scale.x
-                        var bdh = h * pinchZoom.scale.y
-                        pinchZoom.context.drawImage(pinchZoom.imgTexture, x, y, w, h, bdx, bdy, bdw, bdh)
-                        pinchZoom.context.lineWidth = 2.5 * pinchZoom.scale.x
-                        pinchZoom.context.strokeStyle = '#2a79ff'
-                        pinchZoom.context.roundRect(bdx, bdy, bdw, bdh, 2 * pinchZoom.scale.x).stroke()
-
-                            */
                             
                             ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
                             ctx.beginPath()
@@ -256,13 +234,13 @@ function pushFacePhoto(photo) {
                 })
                 photo.destroy = function () {
                     pinchZoom.destroy()
-                }
+                }*/
                 var remove = document.createElement('div')
                 remove.classList.add('facePhotoContainerRemove')
                 remove.addEventListener('click', function () {
-                    if (pinchZoom) {
+                    /*if (pinchZoom) {
                         pinchZoom.destroy()
-                    }
+                    }*/
                     facesPhotos = facesPhotos.filter(function (p) { return p.id !== photo.id })
                     facesDiv.removeChild(containerDiv)
                     updateFacesScreenUI()
@@ -517,8 +495,8 @@ function shareResult(url) {
         }
     }
     location.href = 'callback:nativeShare?og_image=' + encodeURIComponent(url) +
-        '&og_title=' + encodeURIComponent('Title') +
-        '&og_description=' + encodeURIComponent('Description') + 
+        '&og_title=' + encodeURIComponent('Find yourself in the crowd!') +
+        '&og_description=' + encodeURIComponent('#secretsout challenge') + 
         '&func=' + callbackName
 }
 
