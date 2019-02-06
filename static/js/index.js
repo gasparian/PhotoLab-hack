@@ -92,6 +92,11 @@ function resetScreens() {
     }
     updateFacesScreenUI()
 
+    var list = document.querySelector('.crowdList')
+    if (list) {
+        list.scrollTo(0, 0)
+    }
+
     while(screensStack.length > 1) {
         popScreen()
     }
@@ -277,7 +282,7 @@ function isLocalTest() {
 function selectNativePhoto(onPhotoSelected) {
     if (isLocalTest()) {
         var photo = {
-            url: Math.random() > 0.5 ? 'https://s16.stc.all.kpcdn.net/share/i/12/10577981/inx960x640.jpg' : 'https://www.hindustantimes.com/rf/image_size_960x540/HT/p2/2019/02/02/Pictures/russia-politics-putin_9b482d60-26e6-11e9-b3a2-37e00a7683f5.jpg',
+            url: Math.random() > 0.5 ? 'https://s16.stc.all.kpcdn.net/share/i/12/10577981/inx960x640.jpg' : 'https://1.bp.blogspot.com/-9QM7ciGXRkQ/V1hsB-wNLBI/AAAAAAAAMoA/eYbSHs00PTAjrI4QAmvYAIGCUe1AuRAnwCLcB/s1600/bryan_cranston_0095.jpg',
             crop: [0, 0, 1, 1],
             rotation: 0,
             flip: 0,
@@ -443,7 +448,7 @@ function openResultScreen(data, imgObject) {
             imgObject: imgObject,
             momentum: true,
             onRender: function () {
-                if (answerIsVisible) {
+                if (answerIsVisible && pinchZoom) {
                     var dx = pinchZoom.position.x
                     var dy = pinchZoom.position.y
                     var dw = pinchZoom.scale.x * pinchZoom.imgTexture.width
@@ -471,6 +476,47 @@ function openResultScreen(data, imgObject) {
 
         setTimeout(function () {
             canvas.style.opacity = '1'
+
+            if (data.bboxs && data.bboxs.length && pinchZoom) {
+                    var bbox = data.bboxs[0]
+                    var x = bbox[0]
+                    var y = bbox[1]
+                    var w = bbox[2] - x
+                    var h = bbox[3] - y
+                    var cx = x + w / 2
+                    var cy = y + h / 2
+
+                    var touchX = pinchZoom.initialScale * cx / 2 + pinchZoom.initPosition.x / 2
+                    var touchY = pinchZoom.initialScale * cy / 2 + pinchZoom.initPosition.y / 2
+
+                    var dx = pinchZoom.initialScale * w / 2
+                    var dy = pinchZoom.initialScale * h / 2
+
+                    var icx = pinchZoom.imgTexture.width / 2
+                    var icy = pinchZoom.imgTexture.height / 2
+                    touchX += cx > icx ? dx : -dx
+                    touchY += cy > icy ? dy : -dy
+
+                    var counter = 0
+                    var animate = function () {
+                        if (pinchZoom) {
+                            pinchZoom.lastTouchTime  = null;
+                            pinchZoom.lastTouchPageX = 0;
+                            pinchZoom.zoom(3, touchX, touchY)
+                            pinchZoom._destroyImpetus();
+                            pinchZoom._createImpetus();
+                            if (counter < 20) {
+                                counter++
+                                requestAnimationFrame(animate)
+                            } else {
+                                answerIsVisible = true
+                            }
+                        }
+                    }
+                    
+                    requestAnimationFrame(animate)
+                }
+
         }, 100)
     }, 200)
 
@@ -481,6 +527,7 @@ function openResultScreen(data, imgObject) {
         shareBtn.removeEventListener('click', onShareClick)
         if (pinchZoom) {
             pinchZoom.destroy()
+            pinchZoom = undefined
         }
     })
 }
@@ -494,6 +541,7 @@ function shareResult(url) {
             // not shared
         }
     }
+
     location.href = 'callback:nativeShare?og_image=' + encodeURIComponent(url) +
         '&og_title=' + encodeURIComponent('Find yourself in the crowd!') +
         '&og_description=' + encodeURIComponent('#secretsout challenge') + 

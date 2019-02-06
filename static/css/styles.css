@@ -248,6 +248,28 @@
     margin-left: 20px;
 }
 
+/** custom scroll */
+
+
+.gene-custom-scroll {
+    -webkit-overflow-scrolling: touch;
+}
+
+.gene-custom-scroll::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+.gene-custom-scroll::-webkit-scrollbar-thumb {
+    background-color: #999999;
+    border: 0 solid transparent;
+    border-radius: 2px;
+}
+
+.gene-custom-scroll::-webkit-scrollbar-track {
+    background-color:initial;
+}
+
 /** *** */
 
 body, html {
@@ -256,6 +278,15 @@ body, html {
     background: #f2f2f2;
     width: 100%;
     height: 100%;
+    overflow: hidden;
+
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
 }
 
 .flexOne {
@@ -381,7 +412,7 @@ body, html {
             flex-direction: row;
     height: 48px;
     padding: 0 20px;
-    margin: 10px 0 20px;
+    margin: 10px 0 10px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     -webkit-box-sizing: border-box;
             box-sizing: border-box;
@@ -404,7 +435,7 @@ body, html {
             flex: 1;
     min-height: 0;
     min-width: 0;
-    padding: 0 20px 50px 20px;
+    margin-bottom: 50px;
     -webkit-box-sizing: border-box;
             box-sizing: border-box;
     -webkit-box-orient: vertical;
@@ -419,7 +450,7 @@ body, html {
             flex: 1;
     min-height: 0;
     min-width: 0;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .actionButtons {
@@ -429,6 +460,7 @@ body, html {
     -webkit-box-pack: justify;
         -ms-flex-pack: justify;
             justify-content: space-between;
+    margin: 0 22px;
 }
 
 /** **/
@@ -450,8 +482,8 @@ body, html {
             align-items: center;
     overflow-x: hidden;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
     margin-bottom: 10px;
+    padding: 0 22px;
 }
 
 .crowdList .genePlus {
@@ -476,6 +508,7 @@ body, html {
     -webkit-box-align: center;
         -ms-flex-align: center;
             align-items: center;
+    margin: 0px 22px;
 }
 
 .facePhotoContainer {
@@ -577,6 +610,7 @@ body, html {
     -webkit-box-direction: normal;
         -ms-flex-direction: column;
             flex-direction: column;
+    margin: 0 22px 10px;
 }
 
 #cookingScreen .content {
@@ -587,13 +621,13 @@ body, html {
     position: absolute;
     left: 0;
     right: 0;
-    top: 175px;
+    top: 30%;
     height: 1px;
     background: rgba(0, 0, 0, 0.1);
 }
 
 #cookingFaces {
-    height: 150px;
+    height: 30%;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -608,7 +642,7 @@ body, html {
 
 #cookingFaces img {
     max-width: 45%;
-    max-height: 30vh;
+    max-height: 100%;
     -o-object-fit: contain;
        object-fit: contain;
 }
@@ -652,11 +686,12 @@ body, html {
     -webkit-box-align: center;
         -ms-flex-align: center;
             align-items: center;
+    margin: 0 22px 10px;
 }
 
 #resultScreen canvas {
     width: 100%;
-    height: 90%;
+    height: 100%;
     opacity: 0;
     -webkit-transition: opacity 0.3s ease-in;
     -o-transition: opacity 0.3s ease-in;
