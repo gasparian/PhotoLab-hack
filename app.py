@@ -347,13 +347,23 @@ def prepare_response(responses):
 
 
 MAX_SIZE_SELFIE = 400 
-MAX_SIZE_CROWD = 1000
+MAX_SIZE_CROWD = 1200
 WARP_2D = False
 CORRECT_COLOR = True
 MAX_POINTS = 58
 
 BUCKET_NAME = "storage.ws.pho.to"
 PATH = "photohack/gene"
+
+PHRASES = [
+    "Hmm ... I don't remember that you've ever allowed yourself to do that!",
+    "I've never noticed this before...",
+    "How did you get there?",
+    "How did you get into this company?",
+    "Who is that with you?",
+    "Can you explain it?!",
+    "What are you doing over there?"
+]
 
 #load trained models
 # face landmarks
@@ -389,6 +399,10 @@ def create_mix():
         if "points" in input_urls["me"]:
             points_me = input_urls["me"]["points"]
         print(f" [INFO] Selfie shape: {me.shape}")
+
+        file_type = input_urls["crowd"]["url"].split(".")[-1] 
+        file_type = "."+file_type if file_type in ["png", "jpeg", "jpg"] else ".jpeg"
+
         crowd, old_shape = open_img(input_urls["crowd"]["url"], biggest=MAX_SIZE_CROWD)
         print(f" [INFO] Crowd shape: {crowd.shape}")
         if "friend" in input_urls:
@@ -410,13 +424,14 @@ def create_mix():
 
         else:
             responses["bboxs"] = result_bboxs
+            responses["title"] = np.random.choice(PHRASES)
 
             crowd = cv2.resize(crowd, old_shape, Image.LANCZOS)
             #crowd = cv2.cvtColor(crowd, cv2.COLOR_BGR2RGB)
-            retval, buff = cv2.imencode('.jpeg', crowd)
+            retval, buff = cv2.imencode(file_type, crowd)
 
             s3 = boto3.client('s3')
-            fname = PATH+"/"+str(random.randint(0,10e12))+".jpeg"
+            fname = PATH+"/"+str(random.randint(0,10e12))+file_type
 
             with BytesIO(buff) as f:
                 s3.upload_fileobj(f, BUCKET_NAME, fname, 

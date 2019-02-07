@@ -18,6 +18,9 @@ def bilinear_interpolate(img, coords):
     x0, y0 = int_coords
     dx, dy = coords - int_coords
 
+    x0 = np.clip(x0, a_min=None, a_max=img.shape[1]-2).astype(np.int32)
+    y0 = np.clip(y0, a_min=None, a_max=img.shape[0]-2).astype(np.int32)
+
     # 4 Neighour pixels
     q11 = img[y0, x0]
     q21 = img[y0, x0 + 1]
@@ -57,6 +60,10 @@ def process_warp(src_img, result_img, tri_affines, dst_points, delaunay):
         out_coords = np.dot(tri_affines[simplex_index],
                             np.vstack((coords.T, np.ones(num_coords))))
         x, y = coords.T
+
+        x = np.clip(x, a_min=None, a_max=result_img.shape[1]-1).astype(np.int32)
+        y = np.clip(y, a_min=None, a_max=result_img.shape[0]-1).astype(np.int32)
+
         result_img[y, x] = bilinear_interpolate(src_img, out_coords)
 
     return None

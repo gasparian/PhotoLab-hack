@@ -8,3 +8,4 @@
 /images_crowd
 *.swp
 .DS_Store
+*.ipynb
