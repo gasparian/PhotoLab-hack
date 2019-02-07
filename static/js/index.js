@@ -330,13 +330,13 @@ function getPhotoTransformAndClip(photo) {
         transform = 'rotate(' + photo.rotation + 'deg)'
     }
     if (photo.flip === 1) {
-        transform += ' scale(-1, 1)'
-    }
-    if (photo.flip === 2) {
         transform += ' scale(1, -1)'
     }
+    if (photo.flip === 2) {
+        transform += ' scale(-1, 1)'
+    }
     if (photo.flip === 3) {
-        transform += ' scale(-1, 1) scale(1, -1)'
+        transform += ' scale(1, -1) scale(-1, 1)'
     }
 
     var wScale = 1
