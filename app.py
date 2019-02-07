@@ -40,9 +40,9 @@ def convertDtypeRec(dd):
         except:
             pass
 
-def open_img(url, biggest=400, flip_colors=False):
+def open_img(data, biggest=400, flip_colors=False):
 
-    response = requests.get(url)
+    response = requests.get(data["url"])
     with BytesIO(response.content) as stream:
         image=Image.open(stream)
         try: 
@@ -69,6 +69,9 @@ def open_img(url, biggest=400, flip_colors=False):
     cv_image = cv_image[:, :, ::-1].copy()
     if flip_colors:
         cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+
+    #cv_image = img_transforms(cv_image, **data)
+
     scale = biggest / max(cv_image.shape[:-1]) 
     old_shape = cv_image.shape[:-1][::-1]
     cv_image = cv2.resize(cv_image, (int(cv_image.shape[1]*scale), 
@@ -279,6 +282,30 @@ def insert_face(result, CROWD, scale):
     
     return CROWD, result_bboxs
 
+def rotate_clockwise(img, deg):
+    for i in range(deg // 90):
+        img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+    return img
+
+def img_transforms(img, **kwargs):
+    for t in kwargs:
+        if t[0] == "rotation":
+            img = rotate_clockwise(img, t[1])
+        if t[0] == "flip":
+            if t[1] == 1:
+                img = cv2.flip(img, 1)
+            elif t[1] == 2:
+                img = cv2.flip(img, 0)
+            elif t[1] == 3:
+                img = cv2.flip(img, 1)
+                img = cv2.flip(img, 0)
+        if t[0] == "crop":
+            img  = img[
+                int(t[1][0]*img.shape[0]):(int(t[1][0]*img.shape[0]) + int(t[1][2]*img.shape[0])), 
+                int(t[1][1]*img.shape[1]):(int(t[1][1]*img.shape[1]) + int(t[1][3]*img.shape[1]))
+            ]
+    return img
+
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
                 automatic_options=True):
@@ -389,13 +416,19 @@ def starting_page():
 @crossdomain(origin='*')
 @nocache
 def create_mix(): 
+
+    #rotation : int (0, 90, 180, 270),
+    #flip : int (0,1,2,3), 
+    #crop : floararray,
+
     responses = {"error":False}
     try:
         friend, points_me, points_friend = None, None, None
         processor = preprocess_img(max_dst_boxes=15, embeddings_max_iters=2, n_jobs=2)
     
         input_urls = json.loads(request.values["data"])
-        me, _ = open_img(input_urls["me"]["url"], biggest=MAX_SIZE_SELFIE)
+        me, _ = open_img(input_urls["me"], biggest=MAX_SIZE_SELFIE)
+
         if "points" in input_urls["me"]:
             points_me = input_urls["me"]["points"]
         print(f" [INFO] Selfie shape: {me.shape}")
@@ -403,10 +436,10 @@ def create_mix():
         file_type = input_urls["crowd"]["url"].split(".")[-1] 
         file_type = "."+file_type if file_type in ["png", "jpeg", "jpg"] else ".jpeg"
 
-        crowd, old_shape = open_img(input_urls["crowd"]["url"], biggest=MAX_SIZE_CROWD)
+        crowd, old_shape = open_img(input_urls["crowd"], biggest=MAX_SIZE_CROWD)
         print(f" [INFO] Crowd shape: {crowd.shape}")
         if "friend" in input_urls:
-            friend, _ = open_img(input_urls["friend"]["url"], biggest=MAX_SIZE_SELFIE)
+            friend, _ = open_img(input_urls["friend"], biggest=MAX_SIZE_SELFIE)
             if "points" in input_urls["friend"]:
                 points_friend = input_urls["friend"]["points"]
             print(f" [INFO] Friend photo shape: {friend.shape}")
