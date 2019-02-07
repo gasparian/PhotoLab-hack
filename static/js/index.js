@@ -14,7 +14,7 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
 // TODO: онбординг? будет позже
 // TODO: query params для скриптов! на каждый чендж
 
-var ONBOARDING_KEY = 'ONBOARDING1'
+var ONBOARDING_KEY = 'ONBOARDING2'
 var facePhotoId = 0
 var mixId = 0
 var facesPhotos = []
@@ -302,9 +302,9 @@ function selectNativePhoto(onPhotoSelected) {
     if (isLocalTest()) {
         var photo = {
             url: Math.random() > 0.5 ? 'https://s16.stc.all.kpcdn.net/share/i/12/10577981/inx960x640.jpg' : 'https://1.bp.blogspot.com/-9QM7ciGXRkQ/V1hsB-wNLBI/AAAAAAAAMoA/eYbSHs00PTAjrI4QAmvYAIGCUe1AuRAnwCLcB/s1600/bryan_cranston_0095.jpg',
-            crop: [0.2, 0, 0.8, 1],
-            rotation: 90,
-            flip: 3,
+            crop: [0, 0, 1, 1], //[0.2, 0, 0.8, 1],
+            rotation: 0,//90,
+            flip: 0,//3,
             id: facePhotoId++
         }
         onPhotoSelected(photo)
@@ -327,7 +327,7 @@ function selectNativePhoto(onPhotoSelected) {
 function getPhotoTransformAndClip(photo) {
     var transform = ''
     if (photo.rotation) {
-        transform = 'rotate(' + photo.rotation + 'deg)'
+        transform = 'rotate(' + -photo.rotation + 'deg)'
     }
     if (photo.flip === 1) {
         transform += ' scale(-1, 1)'
@@ -587,7 +587,7 @@ function openResultScreen(data, imgObject) {
                             pinchZoom.zoom(3, touchX, touchY)
                             pinchZoom._destroyImpetus();
                             pinchZoom._createImpetus();
-                            if (counter < 20) {
+                            if (counter < 10) {
                                 counter++
                                 requestAnimationFrame(animate)
                             } else {
@@ -595,8 +595,10 @@ function openResultScreen(data, imgObject) {
                             }
                         }
                     }
-                    
-                    requestAnimationFrame(animate)
+
+                    setTimeout(function () {
+                        requestAnimationFrame(animate)
+                    }, 200)
                 }
 
         }, 100)
