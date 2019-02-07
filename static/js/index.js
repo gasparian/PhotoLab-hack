@@ -11,19 +11,12 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
   return this;
 }
 
-// TODO: онбординг? будет позже
 // TODO: query params для скриптов! на каждый чендж
 
-var ONBOARDING_KEY = 'ONBOARDING2'
 var facePhotoId = 0
 var mixId = 0
 var facesPhotos = []
-var crowdPhoto = {
-    url: '',
-    crop: [0, 0, 1, 1],
-    rotation: 0,
-    flip: 0
-}
+var crowdPhoto = createPhotoObject()
 
 var shareBtn = document.getElementById('shareBtn')
 var answerBtn = document.getElementById('answerBtn')
@@ -32,13 +25,29 @@ var facesDiv = document.getElementById('facesDiv')
 var progressSteps = document.getElementById('progressSteps')
 var screensStack = []
 
+function createPhotoObject(data) {
+    data = data || {}
+
+    return {
+        url: data.image_url || data.url || '',
+        crop: data.crop || [0, 0, 1, 1],
+        rotation: data.rotation || 0,
+        flip: data.flip || 0,
+        id: facePhotoId++
+    }
+}
+
+function setVisible(elem, visible) {
+    if (visible) {
+        elem.classList.remove('geneHidden')
+    } else {
+        elem.classList.add('geneHidden')
+    }
+}
+
 function updateSteps() {
     var screen = screensStack[screensStack.length - 1]
-    if (screen.step) {
-        progressSteps.style.display = 'flex'
-    } else {
-        progressSteps.style.display = 'none'
-    }
+    setVisible(progressSteps, screen.step)
 }
 
 function pushScreen(id, destroyFunc) {
@@ -50,7 +59,7 @@ function pushScreen(id, destroyFunc) {
     })
 
     var screen = screensStack[screensStack.length - 1]
-    screen.div.style.display = 'flex'
+    setVisible(screen.div, true)
     if (screen.step) {
         screen.step.classList.add('progress-steps__step--active')
     }
@@ -64,7 +73,7 @@ function popScreen() {
     }
 
     var screen = screensStack[screensStack.length - 1]
-    screen.div.style.display = 'none'
+    setVisible(screen.div, false)
     if (screen.step) {
         screen.step.classList.remove('progress-steps__step--active')
     }
@@ -84,12 +93,7 @@ function resetScreens() {
         }
     })
     facesPhotos.length = 0
-    crowdPhoto = {
-        url: '',
-        crop: [0, 0, 1, 1],
-        rotation: 0,
-        flip: 0
-    }
+    crowdPhoto = createPhotoObject()
     updateFacesScreenUI()
 
     var list = document.querySelector('.crowdList')
@@ -108,7 +112,7 @@ function openStartScreen() {
 
 function openFacesScreen() {
     if (screensStack.length > 0) {
-        screensStack[0].div.style.display = 'none'
+        setVisible(screensStack[0].div, false)
     }
     screensStack.length = 0
     updateFacesScreenUI()
@@ -124,7 +128,7 @@ function selectFacePhoto() {
 
 function selectCrowdPhoto() {
     selectNativePhoto(function (photo) {
-        crowdPhoto = photo
+        crowdPhoto = createPhotoObject(photo)
         openCookingScreen()
     })
 }
@@ -149,122 +153,18 @@ function pushFacePhoto(photo) {
         var maxHeight = (body.getBoundingClientRect().height - 20) / 2
         var maxWidth = body.getBoundingClientRect().width
 
-        var photoParams = getPhotoTransformAndClip(photo)
-        var imgWidth = img.width
-        var imgHeight = img.height
-        var width = img.width * photoParams.wScale
-        var height = img.height * photoParams.hScale
-
-        var switchSizes = photo.rotation === 90 || photo.rotation === 270
-        if (switchSizes) {
-            var a = width
-            width = height
-            height = a
-        }
-
-        var scale = width > maxWidth ? maxWidth / width : 1
-        if (height * scale > maxHeight) {
-            scale *= maxHeight / (height * scale)
-        }
-
-        height *= scale
-        width *= scale
-        imgWidth *= scale
-        imgHeight *= scale
-
-        /*var canvas = document.createElement('canvas')
-        canvas.width = width
-        canvas.height = height
-        canvas.style.width = width + 'px'
-        canvas.style.height = height + 'px'
-
-        var ctx = canvas.getContext('2d')
-        ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, width, height)*/
-
+        applyPhotoParamsToContainerAndImg(photo, img, containerDiv, maxWidth, maxHeight)
         containerDiv.style.maxHeight = 'none'
-        containerDiv.style.width = width + 'px'
-        containerDiv.style.height = height + 'px'
-        img.style.width = imgWidth + 'px'
-        img.style.height = imgHeight + 'px'
-        if (photoParams.transform) {
-            img.style.transform = photoParams.transform
-        }
-        if (photoParams.clipPath) {
-            img.style.clipPath = photoParams.clipPath
-        }
 
         setTimeout(function () {
             containerDiv.innerHTML = ''
-            //containerDiv.appendChild(canvas)
             containerDiv.appendChild(img)
             setTimeout(function () {
                 img.style.opacity = '1'
                 
-                /*
-                canvas.style.opacity = '1'
-
-                var touches = []
-                var pinchZoom = new PinchZoomCanvas({
-                    canvas: canvas,
-                    path: img.src,
-                    imgObject: img,
-                    momentum: true,
-                    onClick: function (touch) {
-                        var touchX = touch.pageX - pinchZoom.offeset.x
-                        var touchY = touch.pageY - pinchZoom.offeset.y
-
-                        var newTouches = []
-                        for (var i = 0; i < touches.length; i++) {
-                            var dx = touchX - touches[i].x
-                            var dy = touchY - touches[i].y
-                            var d = Math.sqrt(dx * dx + dy * dy)
-                            if (d > 10) {
-                                newTouches.push(touches[i])
-                            }
-                        }
-                        if (newTouches.length === touches.length) {
-                            touches.push({
-                                x: touchX,
-                                y: touchY
-                            })
-                        } else {
-                            touches = newTouches
-                        }
-                        console.log('click', touch, canvas.getBoundingClientRect(), pinchZoom)
-                    },
-                    onRender: function () {
-                        // WARN: render is valid. How to place NEW points correctly, when zoomed?
-                        touches.forEach(function (touch) {
-                            var x = touch.x / scale
-                            var y = touch.y / scale
-
-                            x *= pinchZoom.scale.x
-                            y *= pinchZoom.scale.y
-
-                            x += pinchZoom.position.x
-                            y += pinchZoom.position.y
-                            
-                            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'
-                            ctx.beginPath()
-                            ctx.arc(x, y, 14, 0, 2 * Math.PI)
-                            ctx.fill()
-
-                            ctx.fillStyle = '#2a79ff'
-                            ctx.beginPath()
-                            ctx.arc(x, y, 10, 0, 2 * Math.PI)
-                            ctx.fill()
-                        })
-                    }
-                })
-                photo.destroy = function () {
-                    pinchZoom.destroy()
-                }*/
                 var remove = document.createElement('div')
                 remove.classList.add('facePhotoContainerRemove')
                 remove.addEventListener('click', function () {
-                    /*if (pinchZoom) {
-                        pinchZoom.destroy()
-                    }*/
                     facesPhotos = facesPhotos.filter(function (p) { return p.id !== photo.id })
                     facesDiv.removeChild(containerDiv)
                     updateFacesScreenUI()
@@ -280,18 +180,10 @@ function pushFacePhoto(photo) {
 
 function updateFacesScreenUI() {
     var buttons = document.querySelector('#facesScreen .actionButtons')
-    if (facesPhotos.length > 0) {
-        buttons.style.display = 'flex'
-    } else {
-        buttons.style.display = 'none'
-    }
+    setVisible(buttons, facesPhotos.length > 0)
 
     var plus = document.querySelector('#facesScreen .genePlus')
-    if (facesPhotos.length > 1) {
-        plus.style.display = 'none'
-    } else {
-        plus.style.display = 'block'
-    }
+    setVisible(plus, facesPhotos.length < 2)
 }
 
 function isLocalTest() {
@@ -300,13 +192,15 @@ function isLocalTest() {
 
 function selectNativePhoto(onPhotoSelected) {
     if (isLocalTest()) {
-        var photo = {
-            url: Math.random() > 0.5 ? 'https://s16.stc.all.kpcdn.net/share/i/12/10577981/inx960x640.jpg' : 'https://1.bp.blogspot.com/-9QM7ciGXRkQ/V1hsB-wNLBI/AAAAAAAAMoA/eYbSHs00PTAjrI4QAmvYAIGCUe1AuRAnwCLcB/s1600/bryan_cranston_0095.jpg',
-            crop: [0, 0, 1, 1], //[0.2, 0, 0.8, 1],
-            rotation: 0,//90,
-            flip: 0,//3,
-            id: facePhotoId++
-        }
+        var url = Math.random() > 0.5
+            ? 'https://s16.stc.all.kpcdn.net/share/i/12/10577981/inx960x640.jpg'
+            : 'https://1.bp.blogspot.com/-9QM7ciGXRkQ/V1hsB-wNLBI/AAAAAAAAMoA/eYbSHs00PTAjrI4QAmvYAIGCUe1AuRAnwCLcB/s1600/bryan_cranston_0095.jpg'
+
+        var photo = createPhotoObject({
+            url: url
+            //crop: [0, 0.2, 1, 0.8],
+            //rotation: 90
+        })
         onPhotoSelected(photo)
         return
     }
@@ -316,9 +210,7 @@ function selectNativePhoto(onPhotoSelected) {
         var photos = result.photos
         var photo = photos[0]
         if (photo) {
-            photo.id = facePhotoId++
-            photo.url = photo.image_url
-            onPhotoSelected(photo)
+            onPhotoSelected(createPhotoObject(photo))
         }
     }
     location.href = 'callback:nativePhotoSelect?func=' + callback
@@ -371,6 +263,48 @@ function openCrowdScreen() {
     pushScreen('crowdScreen')
 }
 
+function applyPhotoParamsToContainerAndImg(photo, img, container, maxWidth, maxHeight) {
+    var photoParams = getPhotoTransformAndClip(photo)
+    var imgWidth = img.width
+    var imgHeight = img.height
+    var width = img.width * photoParams.wScale
+    var height = img.height * photoParams.hScale
+
+    var switchSizes = photo.rotation === 90 || photo.rotation === 270
+    if (switchSizes) {
+        var a = width
+        width = height
+        height = a
+    }
+
+    var scale = width > maxWidth ? maxWidth / width : 1
+    if (height * scale > maxHeight) {
+        scale *= maxHeight / (height * scale)
+    }
+
+    height *= scale
+    width *= scale
+    imgWidth *= scale
+    imgHeight *= scale
+
+    container.style.width = width + 'px'
+    container.style.height = height + 'px'
+    img.style.width = imgWidth + 'px'
+    img.style.height = imgHeight + 'px'
+    applyPhotoParams(img, photoParams)
+}
+
+function applyPhotoParams(img, params) {
+    if (params.transform) {
+        img.style.transform = params.transform
+        img.style.webkitTransform = params.transform
+    }
+    if (params.clipPath) {
+        img.style.clipPath = params.clipPath
+        img.style.webkitClipPath = params.clipPath
+    }
+}
+
 function openCookingScreen() {
     var cookingFaces = document.getElementById('cookingFaces')
     cookingFaces.innerHTML = ''
@@ -378,24 +312,23 @@ function openCookingScreen() {
     var cookingCrowd = document.getElementById('cookingCrowd')
     cookingCrowd.innerHTML = ''
 
+    var createPhotoWrapper = function (photo, img, container, maxWidth, maxHeight) {
+        var imgContainer = document.createElement('div')
+        imgContainer.classList.add('cookingPhotoContainer')
+        imgContainer.appendChild(img)
+
+        applyPhotoParamsToContainerAndImg(photo, img, imgContainer, maxWidth, maxHeight)
+
+        container.appendChild(imgContainer)
+    }
+
     var processPhoto = function (photo) {
         var img = new Image()
-        var photoParams = getPhotoTransformAndClip(photo)
-        var switchSizes = photo.rotation === 90 || photo.rotation === 270
-
         img.addEventListener('load', function () {
-            if (switchSizes) {
-                photoParams.transform += ' scale(' + img.width / img.height + ')'
-                photoParams.transform.trim()
-            }
-            if (photoParams.transform) {
-                img.style.transform = photoParams.transform
-            }
-            if (photoParams.clipPath) {
-                img.style.clipPath = photoParams.clipPath
-            }
-
-            cookingFaces.appendChild(img)
+            var bRect = cookingFaces.getBoundingClientRect()
+            var maxWidth = bRect.width * 0.45
+            var maxHeight = bRect.height
+            createPhotoWrapper(photo, img, cookingFaces, maxWidth, maxHeight)
         })
         img.src = photo.url
     }
@@ -405,8 +338,13 @@ function openCookingScreen() {
     }
 
     var crowdImage = new Image()
+    crowdImage.addEventListener('load', function () {
+        var bRect = cookingCrowd.getBoundingClientRect()
+        var maxWidth = bRect.width
+        var maxHeight = bRect.height
+        createPhotoWrapper(crowdPhoto, crowdImage, cookingCrowd, maxWidth, maxHeight)
+    })
     crowdImage.src = crowdPhoto.url
-    cookingCrowd.appendChild(crowdImage)
 
     pushScreen('cookingScreen', function () {
         mixBtn.classList.remove('loading')
@@ -431,22 +369,9 @@ function mixSelectedPhotos() {
         crowd: crowdPhoto
     }
 
-    var resultPromise
-    if (false && isLocalTest()) {
-        resultPromise = new Promise(function (resolve) {
-            setTimeout(function () {
-                resolve({
-                    url: crowdPhoto.url,
-                    bboxs: [[10, 10, 50, 50], [90, 90, 120, 120]]
-                })
-            }, 1000)
-        })
-    } else {
-        resultPromise = fetch('http://34.201.232.170/create_mix?data=' + JSON.stringify(payload))
-            .then(function (resp) { return resp.json() })
-    }
-
-    resultPromise.then(function (data) {
+    fetch('http://gene.ws.pho.to/create_mix?data=' + JSON.stringify(payload))
+    .then(function (resp) { return resp.json() })
+    .then(function (data) {
         if (thisMixId !== mixId) {
             return
         }
@@ -559,47 +484,47 @@ function openResultScreen(data, imgObject) {
         setTimeout(function () {
             canvas.style.opacity = '1'
 
-            if (data.bboxs && data.bboxs.length && pinchZoom) {
-                    var bbox = data.bboxs[0]
-                    var x = bbox[0]
-                    var y = bbox[1]
-                    var w = bbox[2] - x
-                    var h = bbox[3] - y
-                    var cx = x + w / 2
-                    var cy = y + h / 2
+            /*if (data.bboxs && data.bboxs.length && pinchZoom) {
+                var bbox = data.bboxs[0]
+                var x = bbox[0]
+                var y = bbox[1]
+                var w = bbox[2] - x
+                var h = bbox[3] - y
+                var cx = x + w / 2
+                var cy = y + h / 2
 
-                    var touchX = pinchZoom.initialScale * cx / 2 + pinchZoom.initPosition.x / 2
-                    var touchY = pinchZoom.initialScale * cy / 2 + pinchZoom.initPosition.y / 2
+                var touchX = pinchZoom.initialScale * cx / 2 + pinchZoom.initPosition.x / 2
+                var touchY = pinchZoom.initialScale * cy / 2 + pinchZoom.initPosition.y / 2
 
-                    var dx = pinchZoom.initialScale * w / 2
-                    var dy = pinchZoom.initialScale * h / 2
+                var dx = pinchZoom.initialScale * w / 2
+                var dy = pinchZoom.initialScale * h / 2
 
-                    var icx = pinchZoom.imgTexture.width / 2
-                    var icy = pinchZoom.imgTexture.height / 2
-                    touchX += cx > icx ? dx : -dx
-                    touchY += cy > icy ? dy : -dy
+                var icx = pinchZoom.imgTexture.width / 2
+                var icy = pinchZoom.imgTexture.height / 2
+                touchX += cx > icx ? dx : -dx
+                touchY += cy > icy ? dy : -dy
 
-                    var counter = 0
-                    var animate = function () {
-                        if (pinchZoom) {
-                            pinchZoom.lastTouchTime  = null;
-                            pinchZoom.lastTouchPageX = 0;
-                            pinchZoom.zoom(3, touchX, touchY)
-                            pinchZoom._destroyImpetus();
-                            pinchZoom._createImpetus();
-                            if (counter < 10) {
-                                counter++
-                                requestAnimationFrame(animate)
-                            } else {
-                                onAnswerClick()
-                            }
+                var counter = 0
+                var animate = function () {
+                    if (pinchZoom) {
+                        pinchZoom.lastTouchTime  = null;
+                        pinchZoom.lastTouchPageX = 0;
+                        pinchZoom.zoom(3, touchX, touchY)
+                        pinchZoom._destroyImpetus();
+                        pinchZoom._createImpetus();
+                        if (counter < 10) {
+                            counter++
+                            requestAnimationFrame(animate)
+                        } else {
+                            onAnswerClick()
                         }
                     }
-
-                    setTimeout(function () {
-                        requestAnimationFrame(animate)
-                    }, 200)
                 }
+
+                setTimeout(function () {
+                    requestAnimationFrame(animate)
+                }, 200)
+            }*/
 
         }, 100)
     }, 200)
@@ -696,23 +621,13 @@ for (var i = 0; i < crowdPhotos.length; i++) {
     ;(function (i) {
         var photo = crowdPhotos[i]
             photo.addEventListener('click', function () {
-                crowdPhoto.url = photo.src
+                crowdPhoto = createPhotoObject({
+                    url: photo.src
+                })
                 openCookingScreen()
             })
     }(i));
 }
 
 // open first screen
-var onboardWasShown = safeExec(function () {
-    return !!localStorage.getItem(ONBOARDING_KEY)
-}, false)
-if (onboardWasShown) {
-    openFacesScreen()
-} else {
-    openStartScreen()
-
-    safeExec(function () {
-        localStorage.setItem(ONBOARDING_KEY, true)
-    })
-}
-
+openStartScreen()

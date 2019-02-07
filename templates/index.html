@@ -6,19 +6,21 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Gene</title>
 
-    <link rel="stylesheet" href="/static/css/styles.css?rnd=9"/>
+    <link rel="stylesheet" href="/static/css/styles.css?rnd=10"/>
 </head>
 <body>
     <div class="container">
-        <div class="screen" id="startScreen">
-            <div class="onboarding">
-                <img src="/static/img/onboarding2.png" />
+        <div class="screen geneHidden" id="startScreen">
+            <div class="onboardingContent">
+                <img src="/static/img/onboarding3.png" />
+            </div>
+            <div class="onboardingStart">
                 <div class="geneBtn" onclick="openFacesScreen()">
                     Start
                 </div>
             </div>
         </div>
-        <div class="screen" id="facesScreen">
+        <div class="screen geneHidden" id="facesScreen">
             <div class="header">
                 Select photo of you or your friends
             </div>
@@ -39,7 +41,7 @@
                 </div>
             </div>
         </div>
-        <div class="screen" id="crowdScreen">
+        <div class="screen geneHidden" id="crowdScreen">
             <div class="header">
                 Choose the crowd
             </div>
@@ -50,20 +52,16 @@
 
                     <img src="https://ewedit.files.wordpress.com/2017/07/gettyimages-821100560_master.jpg" />
                     <img src="https://a.ltrbxd.com/resized/sm/upload/0d/vz/j0/cr/black-dynamite-1200-1200-675-675-crop-000000.jpg" />
-                    <img src="http://read.byappi.com/uploads/news/821.jpg" />
                     <img src="https://img-fotki.yandex.ru/get/26/14124454.2d1/0_9e3bf_ed5ddce8_orig.jpg" />
                     <img src="https://i.ytimg.com/vi/z9mUFSexdlE/maxresdefault.jpg" />
                     <img src="https://cdn.shazoo.ru/216426_N1qt1Xm7x4_j4nzfdtozpiiwkljklia.png" />
                     <img src="https://imgflip.com/s/meme/Distracted-Boyfriend.jpg" />
-                    <img src="http://sport.img.com.ua/nxs208/b/orig/b/85/6a7f9156587c0b92a1bf0967e2e8c85b.jpg" />
                     <img src="https://gl-images.condecdn.net/image/7j0meyqERjZ/crop/1620/f/sex.jpg" />
                     <img src="https://www.vladtime.ru/uploads/posts/2018-07/1530443463_maxresdefault.jpg" />
                     <img src="https://pbs.twimg.com/media/DxGrh3JU8AAuND_.jpg" />
                     <img src="https://www.bellmedia.ca/wp-content/uploads/2019/01/582700_570948_3621x2400-1280x800.jpg" />
                     <img src="https://fsmedia.imgix.net/5a/ed/ef/b8/b0e9/472e/9793/2eacf1d02227/han-and-chewbacca.jpeg" />
-                    <img src="http://milivojevic.info/wp-content/uploads/2015/05/sex-i-grad2.jpg" />
                     <img src="https://staff-online.ru/wp-content/uploads/2016/12/gosti-shou.jpg" />
-                    <img src="http://starkovtattoo.spb.ru/images/200/DSC100251940.jpg" />
                 </div>
                 <div class="actionButtons">
                     <div class="geneBtn bordered" onclick="popScreen()">
@@ -74,15 +72,13 @@
                 </div>
             </div>
         </div>
-        <div class="screen" id="cookingScreen">
+        <div class="screen geneHidden" id="cookingScreen">
             <div class="header">
                 Make a mix!
             </div>
             <div class="content">
                 <div class="contentBody">
                     <div id="cookingFaces">
-                    </div>
-                    <div id="cookingSeparator">
                     </div>
                     <div id="cookingCrowd">
                     </div>
@@ -101,14 +97,15 @@
                 </div>
             </div>
         </div>
-        <div class="screen" id="resultScreen">
+        <div class="screen geneHidden" id="resultScreen">
             <div class="header">
                 <span>
                     Great job!
                     <br>
                     Share result and <b>tag friends</b>!
                 </span>
-                <svg transform="scale(1.5)" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="21px" height="21px" viewBox="0 0 21 21" enable-background="new 0 0 21 21" xml:space="preserve" onclick="resetScreens()">
+                <div class="geneFlexDumb"></div>
+                <svg transform="scale(1.5)" version="1.1" xmlns="https://www.w3.org/2000/svg" xmlns:xlink="https://www.w3.org/1999/xlink" x="0px" y="0px" width="21px" height="21px" viewBox="0 0 21 21" enable-background="new 0 0 21 21" xml:space="preserve" onclick="resetScreens()">
                     <g>
                         <path d="M16.615,10.368c0-3.372-2.744-6.116-6.115-6.116c-3.375,0-6.117,2.743-6.117,6.116c0,3.372,2.744,6.115,6.117,6.115
                             v-2.262l5.779,2.889L10.5,20.001v-2.266c-4.062,0-7.369-3.305-7.369-7.366C3.131,6.305,6.438,3,10.5,3
@@ -138,7 +135,7 @@
                 </div>
             </div>
         </div>
-        <div class="progress-steps" id="progressSteps" style="display: none">
+        <div class="progress-steps geneHidden" id="progressSteps">
             <div class="progress-steps__step progress-steps__step--active" id="facesScreenStep">
                 <div class="progress-steps__point"></div>
             </div>
@@ -167,6 +164,6 @@
     <script type="text/javascript" src="/static/js/promise.min.js"></script>
     <script type="text/javascript" src="/static/js/impetus.js?rnd=1"></script>
     <script type="text/javascript" src="/static/js/pinch-zoom-canvas.js?rnd=5"></script>
-    <script type="text/javascript" src="/static/js/index.js?rnd=10"></script>
+    <script type="text/javascript" src="/static/js/index.js?rnd=12"></script>
 </body>
 </html>

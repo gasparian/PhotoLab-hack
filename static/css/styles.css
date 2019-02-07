@@ -144,6 +144,8 @@
     -webkit-box-flex: 1;
         -ms-flex-positive: 1;
             flex-grow: 1;
+    min-height: 0;
+    min-width: 0;
 }
 
 .progress-steps__value {
@@ -270,32 +272,7 @@
     background-color:initial;
 }
 
-/** *** */
-
-body, html {
-    padding: 0;
-    margin: 0;
-    background: #f2f2f2;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-
-    -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-     -khtml-user-select: none; /* Konqueror HTML */
-       -moz-user-select: none; /* Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
-                                  supported by Chrome and Opera */
-}
-
-.flexOne {
-    -webkit-box-flex: 1;
-        -ms-flex: 1;
-            flex: 1;
-    min-height: 0;
-    min-width: 0;
-}
+/** button */
 
 .geneBtn {
     background: #2a79ff;
@@ -345,6 +322,8 @@ body, html {
     color: #333333;
 }
 
+/** plus */
+
 .genePlus {
     width: 40px;
     height: 40px;
@@ -373,6 +352,39 @@ body, html {
     background: #2a79ff;
 }
 
+/** core */
+
+
+.geneHidden {
+    display: none !important;
+}
+
+.geneFlexDumb {
+    -webkit-box-flex: 1;
+        -ms-flex: 1;
+            flex: 1;
+    min-height: 0;
+    min-width: 0;
+}
+
+/** *** */
+
+body, html {
+    padding: 0;
+    margin: 0;
+    background: #f2f2f2;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */ /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
 .container {
     width: 100%;
     height: 100%; 
@@ -388,48 +400,13 @@ body, html {
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
-    -webkit-box-align: center;
-        -ms-flex-align: center;
-            align-items: center;
-    -webkit-box-pack: center;
-        -ms-flex-pack: center;
-            justify-content: center;
     -webkit-box-orient: vertical;
     -webkit-box-direction: normal;
         -ms-flex-direction: column;
             flex-direction: column;
-    display: none;
-}
-
-.onboarding {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    -webkit-transform: translateY(-50px);
-        -ms-transform: translateY(-50px);
-            transform: translateY(-50px);
-}
-
-.onboarding .geneBtn {
-    position: absolute;
-    bottom: 70px;
-    left: 50%;
-    -webkit-transform: translateX(-50%);
-        -ms-transform: translateX(-50%);
-            transform: translateX(-50%);
-}
-
-.onboarding img {
-    width: 100%;
-    height: 100%;
-    max-width: 100%;
-    max-height: 100%;
-    -o-object-fit: contain;
-       object-fit: contain;
 }
 
 .header {
-    width: 100%;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -453,7 +430,6 @@ body, html {
 }
 
 .content {
-    width: 100%;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -463,8 +439,6 @@ body, html {
     min-height: 0;
     min-width: 0;
     margin-bottom: 50px;
-    -webkit-box-sizing: border-box;
-            box-sizing: border-box;
     -webkit-box-orient: vertical;
     -webkit-box-direction: normal;
         -ms-flex-direction: column;
@@ -490,41 +464,41 @@ body, html {
     margin: 0 22px;
 }
 
-/** **/
-.crowdList {
+/** onboarding */
+
+.onboardingContent {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
     -webkit-box-flex: 1;
         -ms-flex: 1;
             flex: 1;
     min-height: 0;
     min-width: 0;
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-box-orient: vertical;
-    -webkit-box-direction: normal;
-        -ms-flex-direction: column;
-            flex-direction: column;
-    -webkit-box-align: center;
-        -ms-flex-align: center;
-            align-items: center;
-    overflow-x: hidden;
-    overflow-y: auto;
-    margin-bottom: 10px;
-    padding: 0 22px;
 }
 
-.crowdList .genePlus {
-    -ms-flex-negative: 0;
-        flex-shrink: 0;
-    margin-bottom: 10px;
-}
-
-.crowdList img {
-    width: 100%;
-    margin-bottom: 10px;
+.onboardingContent img {
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
     -o-object-fit: contain;
        object-fit: contain;
 }
+
+.onboardingStart {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
+    height: 100px;
+}
+
+/** faces screen */
 
 #facesScreen .contentBody {
     display: -webkit-box;
@@ -544,10 +518,6 @@ body, html {
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
-    -webkit-box-orient: vertical;
-    -webkit-box-direction: normal;
-        -ms-flex-direction: column;
-            flex-direction: column;
     -webkit-box-align: center;
         -ms-flex-align: center;
             align-items: center;
@@ -636,6 +606,47 @@ body, html {
             align-items: center;
 }
 
+/** crowd screen */
+
+.crowdList {
+    -webkit-box-flex: 1;
+        -ms-flex: 1;
+            flex: 1;
+    min-height: 0;
+    min-width: 0;
+    -webkit-box-sizing: border-box;
+            box-sizing: border-box;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+            flex-direction: column;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
+    overflow-x: hidden;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    padding: 0 22px;
+}
+
+.crowdList .genePlus {
+    -ms-flex-negative: 0;
+        flex-shrink: 0;
+    margin-bottom: 10px;
+}
+
+.crowdList img {
+    width: 100%;
+    margin-bottom: 10px;
+    -o-object-fit: contain;
+       object-fit: contain;
+}
+
+/** cooking screen */
+
 #cookingScreen .contentBody {
     display: -webkit-box;
     display: -ms-flexbox;
@@ -647,21 +658,9 @@ body, html {
     margin: 0 22px 10px;
 }
 
-#cookingScreen .content {
-    position: relative;
-}
-
-#cookingSeparator {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 30%;
-    height: 1px;
-    background: rgba(0, 0, 0, 0.1);
-}
-
 #cookingFaces {
-    height: 30%;
+    position: relative;
+    height: 45%;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -671,17 +670,32 @@ body, html {
     -webkit-box-pack: center;
         -ms-flex-pack: center;
             justify-content: center;
-    margin-bottom: 50px;
+    margin-bottom: 20px;
 }
 
-#cookingFaces img {
-    max-width: 45%;
-    max-height: 100%;
-    -o-object-fit: contain;
-       object-fit: contain;
+#cookingFaces:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    bottom: -10px;
+    background: rgba(0, 0, 0, 0.1);
 }
 
-#cookingFaces img:first-child:not(:last-child) {
+.cookingPhotoContainer {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
+    -webkit-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
+}
+
+#cookingFaces .cookingPhotoContainer:first-child:not(:last-child) {
     margin-right: 10px;
 }
 
@@ -702,12 +716,7 @@ body, html {
     min-width: 0;
 }
 
-#cookingCrowd img {
-    -o-object-fit: contain;
-       object-fit: contain;
-    max-width: 100%;
-    max-height: 100%;
-}
+/** result screen */
 
 .answerIsVisible {
     background: rgba(0, 0, 0, 0.1) !important;
