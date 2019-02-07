@@ -522,8 +522,12 @@ body, html {
     -webkit-box-align: center;
         -ms-flex-align: center;
             align-items: center;
+    -webkit-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
     width: 200px;
     height: 200px;
+    max-height: 35%;
     background: rgba(0, 0, 0, 0.2);
     -webkit-transition: all 0.2s ease-in;
     -o-transition: all 0.2s ease-in;
@@ -534,6 +538,7 @@ body, html {
 
 .facePhotoContainer .geneSpinner {
     font-size: 5px;
+    margin: 0;
 }
 
 .facePhotoContainer img, .facePhotoContainer canvas {

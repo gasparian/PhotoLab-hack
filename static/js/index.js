@@ -149,16 +149,28 @@ function pushFacePhoto(photo) {
         var maxHeight = (body.getBoundingClientRect().height - 20) / 2
         var maxWidth = body.getBoundingClientRect().width
 
-        var width = img.width
-        var height = img.height
+        var photoParams = getPhotoTransformAndClip(photo)
+        var imgWidth = img.width
+        var imgHeight = img.height
+        var width = img.width * photoParams.wScale
+        var height = img.height * photoParams.hScale
 
-        var scale = img.width > maxWidth ? maxWidth / img.width : 1
+        var switchSizes = photo.rotation === 90 || photo.rotation === 270
+        if (switchSizes) {
+            var a = width
+            width = height
+            height = a
+        }
+
+        var scale = width > maxWidth ? maxWidth / width : 1
         if (height * scale > maxHeight) {
             scale *= maxHeight / (height * scale)
         }
 
         height *= scale
         width *= scale
+        imgWidth *= scale
+        imgHeight *= scale
 
         /*var canvas = document.createElement('canvas')
         canvas.width = width
@@ -169,10 +181,17 @@ function pushFacePhoto(photo) {
         var ctx = canvas.getContext('2d')
         ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, width, height)*/
 
+        containerDiv.style.maxHeight = 'auto'
         containerDiv.style.width = width + 'px'
         containerDiv.style.height = height + 'px'
-        img.style.width = width + 'px'
-        img.style.height = height + 'px'
+        img.style.width = imgWidth + 'px'
+        img.style.height = imgHeight + 'px'
+        if (photoParams.transform) {
+            img.style.transform = photoParams.transform
+        }
+        if (photoParams.clipPath) {
+            img.style.clipPath = photoParams.clipPath
+        }
 
         setTimeout(function () {
             containerDiv.innerHTML = ''
@@ -283,9 +302,9 @@ function selectNativePhoto(onPhotoSelected) {
     if (isLocalTest()) {
         var photo = {
             url: Math.random() > 0.5 ? 'https://s16.stc.all.kpcdn.net/share/i/12/10577981/inx960x640.jpg' : 'https://1.bp.blogspot.com/-9QM7ciGXRkQ/V1hsB-wNLBI/AAAAAAAAMoA/eYbSHs00PTAjrI4QAmvYAIGCUe1AuRAnwCLcB/s1600/bryan_cranston_0095.jpg',
-            crop: [0, 0, 1, 1],
-            rotation: 0,
-            flip: 0,
+            crop: [0.2, 0, 0.8, 1],
+            rotation: 90,
+            flip: 3,
             id: facePhotoId++
         }
         onPhotoSelected(photo)
@@ -305,6 +324,49 @@ function selectNativePhoto(onPhotoSelected) {
     location.href = 'callback:nativePhotoSelect?func=' + callback
 }
 
+function getPhotoTransformAndClip(photo) {
+    var transform = ''
+    if (photo.rotation) {
+        transform = 'rotate(' + photo.rotation + 'deg)'
+    }
+    if (photo.flip === 1) {
+        transform += ' scale(-1, 1)'
+    }
+    if (photo.flip === 2) {
+        transform += ' scale(1, -1)'
+    }
+    if (photo.flip === 3) {
+        transform += ' scale(-1, 1) scale(1, -1)'
+    }
+
+    var wScale = 1
+    var hScale = 1
+    var clipPath = ''
+    if (photo.crop && photo.crop.length === 4) {
+        var tx = photo.crop[0]
+        var ty = photo.crop[1]
+        var bx = photo.crop[2]
+        var by = photo.crop[3]
+
+        wScale = bx - tx
+        hScale = by - ty
+
+        var topLeft =     (tx * 100) + '% ' + (ty * 100) + '%'
+        var topRight =    (bx * 100) + '% ' + (ty * 100) + '%'
+        var bottomRight = (bx * 100) + '% ' + (by * 100) + '%'
+        var bottomLeft =  (tx * 100) + '% ' + (by * 100) + '%'
+
+        clipPath = 'polygon(' + topLeft + ', ' + topRight + ', ' + bottomRight + ', ' + bottomLeft + ')' 
+    }
+
+    return {
+        transform: transform.trim(),
+        clipPath: clipPath.trim(),
+        wScale: wScale,
+        hScale: hScale
+    }
+}
+
 function openCrowdScreen() {
     pushScreen('crowdScreen')
 }
@@ -316,10 +378,30 @@ function openCookingScreen() {
     var cookingCrowd = document.getElementById('cookingCrowd')
     cookingCrowd.innerHTML = ''
 
-    for (var i = 0; i < facesPhotos.length; i++) {
+    var processPhoto = function (photo) {
         var img = new Image()
-        img.src = facesPhotos[i].url
-        cookingFaces.appendChild(img)
+        var photoParams = getPhotoTransformAndClip(photo)
+        var switchSizes = photo.rotation === 90 || photo.rotation === 270
+
+        img.addEventListener('load', function () {
+            if (switchSizes) {
+                photoParams.transform += ' scale(' + img.width / img.height + ')'
+                photoParams.transform.trim()
+            }
+            if (photoParams.transform) {
+                img.style.transform = photoParams.transform
+            }
+            if (photoParams.clipPath) {
+                img.style.clipPath = photoParams.clipPath
+            }
+
+            cookingFaces.appendChild(img)
+        })
+        img.src = photo.url
+    }
+
+    for (var i = 0; i < facesPhotos.length; i++) {
+        processPhoto(facesPhotos[i])
     }
 
     var crowdImage = new Image()
@@ -433,7 +515,7 @@ function openResultScreen(data, imgObject) {
     answerBtn.addEventListener('click', onAnswerClick)
 
     var onShareClick = function () {
-        shareResult(data.url)
+        shareResult(data.url, data.title)
     }
     shareBtn.addEventListener('click', onShareClick)
 
@@ -532,7 +614,7 @@ function openResultScreen(data, imgObject) {
     })
 }
 
-function shareResult(url) {
+function shareResult(data) {
     var callbackName = 'nativeShareCallback'
     window[callbackName] = function (result) {
         if (result) {
@@ -542,10 +624,14 @@ function shareResult(url) {
         }
     }
 
-    location.href = 'callback:nativeShare?og_image=' + encodeURIComponent(url) +
-        '&og_title=' + encodeURIComponent('Find yourself in the crowd!') +
-        '&og_description=' + encodeURIComponent('#secretsout challenge') + 
+    var title = data.title || 'Find yourself in the crowd!'
+    var description = '#secretsout challenge'
+
+    var link = 'callback:nativeShare?og_image=' + encodeURIComponent(data.url) +
+        '&og_title=' + encodeURIComponent(title) +
+        '&og_description=' + encodeURIComponent(description) + 
         '&func=' + callbackName
+    location.href = link
 }
 
 function safeExec(callback, defaultValue) {
