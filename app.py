@@ -11,6 +11,7 @@ import multiprocessing
 from datetime import timedelta, datetime
 from functools import update_wrapper, wraps
 import json
+import operator
 
 import dlib
 import numpy as np
