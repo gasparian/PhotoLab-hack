@@ -95,6 +95,7 @@ RUN mkdir /root/photolab_hack/static && \
     export AWS_PROFILE=photo-hack-gene
 COPY ./static/js/* /root/photolab_hack/static/js/
 COPY ./static/css/* /root/photolab_hack/static/css/
+COPY ./static/img/* /root/photolab_hack/static/img/
 
 COPY ./models/* /root/photolab_hack/models/
 COPY ./templates/* /root/photolab_hack/templates/
