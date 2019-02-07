@@ -40,6 +40,33 @@ def convertDtypeRec(dd):
         except:
             pass
 
+def rotate_clockwise(img, deg):
+    for i in range(deg // 90):
+        img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+    return img
+
+def img_transforms(img, transforms):
+
+    transforms = sorted(list(transforms.items()), key=operator.itemgetter(0), reverse=True)
+
+    for t in transforms:
+        if t[0] == "rotation":
+            img = rotate_clockwise(img, t[1])
+        if t[0] == "flip":
+            if t[1] == 1:
+                img = cv2.flip(img, 0)
+            elif t[1] == 2:
+                img = cv2.flip(img, 1)
+            elif t[1] == 3:
+                img = cv2.flip(img, 1)
+                img = cv2.flip(img, 0)
+        if t[0] == "crop":
+            img  = img[
+                int(t[1][1]*img.shape[0]):(int(t[1][1]*img.shape[0]) + int(t[1][3]*img.shape[0])),
+                int(t[1][0]*img.shape[1]):(int(t[1][0]*img.shape[1]) + int(t[1][2]*img.shape[1]))
+            ]
+    return img
+
 def open_img(data, biggest=400, flip_colors=False):
 
     response = requests.get(data["url"])
@@ -70,7 +97,7 @@ def open_img(data, biggest=400, flip_colors=False):
     if flip_colors:
         cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
 
-    #cv_image = img_transforms(cv_image, **data)
+    cv_image = img_transforms(cv_image, data)
 
     scale = biggest / max(cv_image.shape[:-1]) 
     old_shape = cv_image.shape[:-1][::-1]
@@ -282,30 +309,6 @@ def insert_face(result, CROWD, scale):
     
     return CROWD, result_bboxs
 
-def rotate_clockwise(img, deg):
-    for i in range(deg // 90):
-        img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
-    return img
-
-def img_transforms(img, **kwargs):
-    for t in kwargs:
-        if t[0] == "rotation":
-            img = rotate_clockwise(img, t[1])
-        if t[0] == "flip":
-            if t[1] == 1:
-                img = cv2.flip(img, 1)
-            elif t[1] == 2:
-                img = cv2.flip(img, 0)
-            elif t[1] == 3:
-                img = cv2.flip(img, 1)
-                img = cv2.flip(img, 0)
-        if t[0] == "crop":
-            img  = img[
-                int(t[1][0]*img.shape[0]):(int(t[1][0]*img.shape[0]) + int(t[1][2]*img.shape[0])), 
-                int(t[1][1]*img.shape[1]):(int(t[1][1]*img.shape[1]) + int(t[1][3]*img.shape[1]))
-            ]
-    return img
-
 def crossdomain(origin=None, methods=None, headers=None,
                 max_age=21600, attach_to_all=True,
                 automatic_options=True):
@@ -468,7 +471,7 @@ def create_mix():
 
             with BytesIO(buff) as f:
                 s3.upload_fileobj(f, BUCKET_NAME, fname, 
-                                  ExtraArgs={"ACL":'public-read', "StorageClass":'STANDARD'})
+                                  ExtraArgs={"ACL":"public-read", "StorageClass":"STANDARD", "ContentType": f"image/{file_type[1:]}"})
             responses["url"] = f"https://storage.ws.pho.to/{fname}"
 
             print(f" [INFO] Time consumed:  {int((time.time() - start) * 1000)} ms. ")

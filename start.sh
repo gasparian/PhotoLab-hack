@@ -7,6 +7,6 @@ gunicorn --bind=0.0.0.0:8000 \
          --graceful-timeout 30 \
          --chdir /root/photolab_hack app:app \
          --preload \
-         --max-requests 10 \ 
+         --max-requests 10 \
          --capture-output \
          --error-logfile /tmp/gene-log.txt
