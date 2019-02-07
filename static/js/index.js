@@ -181,7 +181,7 @@ function pushFacePhoto(photo) {
         var ctx = canvas.getContext('2d')
         ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, width, height)*/
 
-        containerDiv.style.maxHeight = 'auto'
+        containerDiv.style.maxHeight = 'none'
         containerDiv.style.width = width + 'px'
         containerDiv.style.height = height + 'px'
         img.style.width = imgWidth + 'px'
@@ -327,7 +327,7 @@ function selectNativePhoto(onPhotoSelected) {
 function getPhotoTransformAndClip(photo) {
     var transform = ''
     if (photo.rotation) {
-        transform = 'rotate(' + -photo.rotation + 'deg)'
+        transform = 'rotate(' + photo.rotation + 'deg)'
     }
     if (photo.flip === 1) {
         transform += ' scale(-1, 1)'
@@ -515,7 +515,7 @@ function openResultScreen(data, imgObject) {
     answerBtn.addEventListener('click', onAnswerClick)
 
     var onShareClick = function () {
-        shareResult(data.url, data.title)
+        shareResult(data)
     }
     shareBtn.addEventListener('click', onShareClick)
 
@@ -591,7 +591,7 @@ function openResultScreen(data, imgObject) {
                                 counter++
                                 requestAnimationFrame(animate)
                             } else {
-                                answerIsVisible = true
+                                onAnswerClick()
                             }
                         }
                     }
