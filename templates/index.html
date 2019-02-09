@@ -6,22 +6,28 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Gene</title>
 
-    <link rel="stylesheet" href="/static/css/styles.css?rnd=12"/>
+    <link rel="stylesheet" href="/static/css/styles.css?rnd=13"/>
 
     <!-- Yandex.Metrika counter --> <script type="text/javascript" > (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)}; m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)}) (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym"); ym(52246906, "init", { id:52246906, clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true }); </script> <noscript><div><img src="https://mc.yandex.ru/watch/52246906" style="position:absolute; left:-9999px;" alt="" /></div></noscript> <!-- /Yandex.Metrika counter -->
 
 </head>
 <body>
     <div class="container">
-        <div class="screen geneHidden" id="startScreen">
+        <div class="screen geneHidden" id="startScreen1">
             <div class="onboardingContent">
-                <img src="/static/img/onboarding3.png" onclick="openFacesScreen()" />
+                <img class="onboardingImage" src="/static/img/onboarding-1.png" onclick="openFacesScreen()" />
             </div>
             <div class="onboardingStart">
                 <div class="geneBtn" onclick="openFacesScreen()">
                     Start
                 </div>
             </div>
+        </div>
+        <div class="screen geneHidden" id="startScreen2">
+            <img class="onboardingImage" src="/static/img/onboarding-2.png" onclick="openFacesScreen()" />
+        </div>
+        <div class="screen geneHidden" id="startScreen3">
+            <img class="onboardingImage" src="/static/img/onboarding-3.png" onclick="openFacesScreen()" />
         </div>
         <div class="screen geneHidden" id="facesScreen">
             <div class="header">
@@ -32,7 +38,7 @@
                     <div id="facesDiv">
                         
                     </div>
-                    <div class="genePlus" onclick="selectFacePhoto()">
+                    <div class="genePlus bluePlus" onclick="selectFacePhoto()">
                     </div>
                 </div>
                 <div class="actionButtons">
@@ -50,7 +56,7 @@
             </div>
             <div class="content">
                 <div class="crowdList gene-custom-scroll">
-                    <div class="genePlus" onclick="selectCrowdPhoto()">
+                    <div class="genePlus bluePlus" onclick="selectCrowdPhoto()">
                     </div>
                 </div>
                 <div class="actionButtons">
@@ -90,9 +96,7 @@
         <div class="screen geneHidden" id="resultScreen">
             <div class="header">
                 <span>
-                    Great job!
-                    <br>
-                    Share result and <b>tag friends</b>!
+                    Share and <b>tag friends</b>!
                 </span>
                 <div class="geneFlexDumb"></div>
                 <div class="answerIcon" id="answerBtn">
@@ -158,6 +162,6 @@
     <script type="text/javascript" src="/static/js/promise.min.js"></script>
     <script type="text/javascript" src="/static/js/impetus.js?rnd=1"></script>
     <script type="text/javascript" src="/static/js/pinch-zoom-canvas.js?rnd=5"></script>
-    <script type="text/javascript" src="/static/js/index.js?rnd=15"></script>
+    <script type="text/javascript" src="/static/js/index.js?rnd=16"></script>
 </body>
 </html>

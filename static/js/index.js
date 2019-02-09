@@ -14,9 +14,13 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
 // TODO: query params для скриптов! на каждый чендж
 
 // stats:
-// startScreen - первый экран с картинкой
+// closeScreen - закрыл экран (нажал 'back', может когда то еще)
+// startScreen1 - первый экран с картинкой
+// startScreen2 - первый экран с картинкой 2
+// startScreen3 - первый экран с картинкой 3
 // facesScreen - экран с лицами
-// facePhoto - выбор фото. Не стал делать photo1, photo2, потому что нет понимания какая из них один, а какая два, потому что я могу удалить первую, и вторая станет первой, бла бла
+// facePhoto - выбор фото на первом экране
+// removefacePhoto - удалил фотку на первом экране
 // crowdScreen - экран с фотками толпы
 // crowdPhoto{} - тыкнул на пресет
 // myCrowdPhoto - свою загрузил
@@ -24,11 +28,13 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
 // mix - нажал кнопку микс
 // resultScreen - экран результатов
 // tryingToShare - нажал кнопку шаринга
+// tryingToShareFromAlert - нажал пошарить из алерта
+// iDontCare - отказался шарить
 // shared - пошарил
 // notShared - не пошарил
 
 var CROWD_PHOTOS_LIST = [
-    {
+    /*{
         url: 'https://ewedit.files.wordpress.com/2017/07/gettyimages-821100560_master.jpg',
         id: 1
     },
@@ -75,9 +81,87 @@ var CROWD_PHOTOS_LIST = [
     {
         url: 'https://staff-online.ru/wp-content/uploads/2016/12/gosti-shou.jpg',
         id: 12
+    },*/
+
+    /**
+    NEW PHOTOS
+    **/
+
+    {
+        url: location.origin + '/static/crowd/1.png',
+        id: 13
+    },
+    {
+        url: location.origin + '/static/crowd/2.png',
+        id: 14
+    },
+    {
+        url: location.origin + '/static/crowd/3.png',
+        id: 15
+    },
+    {
+        url: location.origin + '/static/crowd/4.png',
+        id: 16
+    },
+    {
+        url: location.origin + '/static/crowd/5.png',
+        id: 17
+    },
+    {
+        url: location.origin + '/static/crowd/6.png',
+        id: 18
+    },
+    {
+        url: location.origin + '/static/crowd/7.png',
+        id: 19
+    },
+    {
+        url: location.origin + '/static/crowd/8.png',
+        id: 20
+    },
+    {
+        url: location.origin + '/static/crowd/9.png',
+        id: 21
+    },
+    {
+        url: location.origin + '/static/crowd/10.png',
+        id: 22
+    },
+    {
+        url: location.origin + '/static/crowd/11.png',
+        id: 23
+    },
+    {
+        url: location.origin + '/static/crowd/12.png',
+        id: 24
+    },
+    {
+        url: location.origin + '/static/crowd/13.png',
+        id: 25
+    },
+    {
+        url: location.origin + '/static/crowd/14.png',
+        id: 26
+    },
+    {
+        url: location.origin + '/static/crowd/15.png',
+        id: 27
+    },
+    {
+        url: location.origin + '/static/crowd/16.png',
+        id: 28
+    },
+    {
+        url: location.origin + '/static/crowd/17.png',
+        id: 29
+    },
+    {
+        url: location.origin + '/static/crowd/18.png',
+        id: 30
     }
 ]
-var CROWD_PHOTO_ID_OFFSET = 0
+
+var LAST_DATA
 
 var facePhotoId = 0
 var mixId = 0
@@ -194,7 +278,15 @@ function resetScreens() {
 }
 
 function openStartScreen() {
-    pushScreen('startScreen')
+    var rnd = Math.random()
+
+    if (rnd > 0.66) {
+        pushScreen('startScreen1')
+    } else if (rnd > 0.33) {
+        pushScreen('startScreen2')
+    } else {
+        pushScreen('startScreen3')
+    }
 }
 
 function openFacesScreen() {
@@ -256,6 +348,7 @@ function pushFacePhoto(photo) {
                 var remove = document.createElement('div')
                 remove.classList.add('facePhotoContainerRemove')
                 remove.addEventListener('click', function () {
+                    yaReachGoal('removefacePhoto')
                     facesPhotos = facesPhotos.filter(function (p) { return p.id !== photo.id })
                     facesDiv.removeChild(containerDiv)
                     updateFacesScreenUI()
@@ -475,6 +568,8 @@ function mixSelectedPhotos() {
             return
         }
 
+        LAST_DATA = data
+
         if (data.error) {
             mixBtn.classList.remove('loading')
 
@@ -539,7 +634,7 @@ function openResultScreen(data, imgObject) {
     answerBtn.addEventListener('click', onAnswerClick)
 
     var onShareClick = function () {
-        shareResult(data)
+        shareResult(data, 'tryingToShare')
     }
     shareBtn.addEventListener('click', onShareClick)
 
@@ -660,6 +755,7 @@ function openResultScreen(data, imgObject) {
 
     resultWasShared = false
     pushScreen('resultScreen', function () {
+        LAST_DATA = undefined
         destroyed = true
         answerBtn.classList.remove('answerIsVisible')
         answerBtn.removeEventListener('click', onAnswerClick)
@@ -671,7 +767,7 @@ function openResultScreen(data, imgObject) {
     })
 }
 
-function shareResult(data) {
+function shareResult(data, eventName) {
     var callbackName = 'nativeShareCallback'
     window[callbackName] = function (result) {
         if (result) {
@@ -683,7 +779,7 @@ function shareResult(data) {
         }
     }
 
-    yaReachGoal('tryingToShare')
+    yaReachGoal(eventName)
 
     var title = data.title || 'Find yourself in the crowd!'
     var description = '#secretsout challenge'
@@ -709,6 +805,10 @@ function tryShowAlertThatResultWillBeLost(callback) {
         return false
     }
 
+    if (!LAST_DATA) {
+        return false
+    }
+
     var title = 'Attention!'
     var description = 'Current mix will be lost. Wanna save it on your facebook?'
 
@@ -718,11 +818,12 @@ function tryShowAlertThatResultWillBeLost(callback) {
         onClick: function () {
             resultWasShared = true
             callback()
+            yaReachGoal('iDontCare')
         }
     }, {
         text: 'Share',
         onClick: function () {
-            shareBtn.click()
+            shareResult(data, 'tryingToShareFromAlert')
         }
     }])
 
@@ -738,6 +839,7 @@ function safeExec(callback, defaultValue) {
 }
 
 function showAlert(title, description, buttons) {
+    var closeAlert
     var titleDiv = document.createElement('div')
     titleDiv.classList.add('geneAlertTitle')
     titleDiv.innerHTML = title
@@ -745,6 +847,13 @@ function showAlert(title, description, buttons) {
     var descriptionDiv = document.createElement('div')
     descriptionDiv.classList.add('geneAlertDescription')
     descriptionDiv.innerHTML = description
+
+    var closeAlert = function () {
+        overlay.style.opacity = '0'
+        setTimeout(function () {
+            document.body.removeChild(overlay)
+        }, 100)
+    }
 
     var buttonsDiv = document.createElement('div')
     buttonsDiv.classList.add('geneAlertButtons')
@@ -755,14 +864,15 @@ function showAlert(title, description, buttons) {
             btnDiv.classList.add('bordered')
         }
         btnDiv.innerHTML = button.text
-        btnDiv.addEventListener('click', function () {
+        btnDiv.addEventListener('click', function (e) {
+            e.stopPropagation()
+
             if (button.onClick) {
                 button.onClick()
             }
-            overlay.style.opacity = '0'
-            setTimeout(function () {
-                document.body.removeChild(overlay)
-            }, 100)
+            if (closeAlert) {
+                closeAlert()
+            }
         })
         buttonsDiv.appendChild(btnDiv)
     })
@@ -777,6 +887,14 @@ function showAlert(title, description, buttons) {
     overlay.classList.add('geneOverlay')
     overlay.appendChild(box)
     document.body.appendChild(overlay)
+
+    closeAlert = function () {
+        overlay.style.opacity = '0'
+        setTimeout(function () {
+            document.body.removeChild(overlay)
+        }, 100)
+    }
+    overlay.addEventListener('click', closeAlert)
 
     setTimeout(function () {
         overlay.style.opacity = '1'
