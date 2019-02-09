@@ -11,19 +11,34 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
   return this;
 }
 
+// TODO: подсказка что можно скейлить результат
 // TODO: query params для скриптов! на каждый чендж
+
+// startScreen - первый экран с картинкой
+// facesScreen - экран с лицами
+// facePhoto - выбор фото. Не стал делать photo1, photo2, потому что нет понимания какая из них один, а какая два, потому что я могу удалить первую, и вторая станет первой, бла бла
+// crowdScreen - экран с фотками толпы
+// crowdPhoto + есть params {index: number}
+// cookingScreen - экран с кнопкой mix
+// mix - нажал кнопку микс
+// resultScreen - экран результатов
 
 var facePhotoId = 0
 var mixId = 0
 var facesPhotos = []
 var crowdPhoto = createPhotoObject()
 
+var showZoomTip = true
 var shareBtn = document.getElementById('shareBtn')
 var answerBtn = document.getElementById('answerBtn')
 var mixBtn = document.getElementById('mixBtn')
 var facesDiv = document.getElementById('facesDiv')
 var progressSteps = document.getElementById('progressSteps')
 var screensStack = []
+
+function yaReachGoal(targetName, params) {
+    ym(52246906, 'reachGoal', targetName)
+}
 
 function createPhotoObject(data) {
     data = data || {}
@@ -57,6 +72,9 @@ function pushScreen(id, destroyFunc) {
         step: document.getElementById(id + 'Step'),
         destroy: destroyFunc
     })
+
+    // send screen reached
+    yaReachGoal(id)
 
     var screen = screensStack[screensStack.length - 1]
     setVisible(screen.div, true)
@@ -123,6 +141,8 @@ function selectFacePhoto() {
     selectNativePhoto(function (photo) {
         pushFacePhoto(photo)
         updateFacesScreenUI()
+
+        yaReachGoal('facePhoto')
     })
 }
 
@@ -153,14 +173,14 @@ function pushFacePhoto(photo) {
         var maxHeight = (body.getBoundingClientRect().height - 20) / 2
         var maxWidth = body.getBoundingClientRect().width
 
-        applyPhotoParamsToContainerAndImg(photo, img, containerDiv, maxWidth, maxHeight)
+        var canvas = createCanvasFromImageAndTransforms(photo, img, containerDiv, maxWidth, maxHeight)
         containerDiv.style.maxHeight = 'none'
 
         setTimeout(function () {
             containerDiv.innerHTML = ''
-            containerDiv.appendChild(img)
+            containerDiv.appendChild(canvas)
             setTimeout(function () {
-                img.style.opacity = '1'
+                canvas.style.opacity = '1'
                 
                 var remove = document.createElement('div')
                 remove.classList.add('facePhotoContainerRemove')
@@ -197,9 +217,9 @@ function selectNativePhoto(onPhotoSelected) {
             : 'https://1.bp.blogspot.com/-9QM7ciGXRkQ/V1hsB-wNLBI/AAAAAAAAMoA/eYbSHs00PTAjrI4QAmvYAIGCUe1AuRAnwCLcB/s1600/bryan_cranston_0095.jpg'
 
         var photo = createPhotoObject({
-            url: url
-            //crop: [0, 0.2, 1, 0.8],
-            //rotation: 90
+            url: url/*,
+            crop: [0, 0.4, 1, 0.9],
+            rotation: 180*/
         })
         onPhotoSelected(photo)
         return
@@ -216,24 +236,17 @@ function selectNativePhoto(onPhotoSelected) {
     location.href = 'callback:nativePhotoSelect?func=' + callback
 }
 
-function getPhotoTransformAndClip(photo) {
-    var transform = ''
-    if (photo.rotation) {
-        transform = 'rotate(' + photo.rotation + 'deg)'
-    }
-    if (photo.flip === 1) {
-        transform += ' scale(1, -1)'
-    }
-    if (photo.flip === 2) {
-        transform += ' scale(-1, 1)'
-    }
-    if (photo.flip === 3) {
-        transform += ' scale(1, -1) scale(-1, 1)'
-    }
+function openCrowdScreen() {
+    pushScreen('crowdScreen')
+}
 
+function createCanvasFromImageAndTransforms(photo, img, container, maxWidth, maxHeight) {
+    var sx = 0
+    var sy = 0
+    var sw = img.width
+    var sh = img.height
     var wScale = 1
     var hScale = 1
-    var clipPath = ''
     if (photo.crop && photo.crop.length === 4) {
         var tx = photo.crop[0]
         var ty = photo.crop[1]
@@ -243,33 +256,16 @@ function getPhotoTransformAndClip(photo) {
         wScale = bx - tx
         hScale = by - ty
 
-        var topLeft =     (tx * 100) + '% ' + (ty * 100) + '%'
-        var topRight =    (bx * 100) + '% ' + (ty * 100) + '%'
-        var bottomRight = (bx * 100) + '% ' + (by * 100) + '%'
-        var bottomLeft =  (tx * 100) + '% ' + (by * 100) + '%'
-
-        clipPath = 'polygon(' + topLeft + ', ' + topRight + ', ' + bottomRight + ', ' + bottomLeft + ')' 
+        sx = img.width * tx
+        sy = img.height * ty
+        sw = img.width * (bx - tx)
+        sh = img.height * (by - ty)
     }
 
-    return {
-        transform: transform.trim(),
-        clipPath: clipPath.trim(),
-        wScale: wScale,
-        hScale: hScale
-    }
-}
-
-function openCrowdScreen() {
-    pushScreen('crowdScreen')
-}
-
-function applyPhotoParamsToContainerAndImg(photo, img, container, maxWidth, maxHeight) {
-    var photoParams = getPhotoTransformAndClip(photo)
     var imgWidth = img.width
     var imgHeight = img.height
-    var width = img.width * photoParams.wScale
-    var height = img.height * photoParams.hScale
-
+    var width = img.width * wScale
+    var height = img.height * hScale
     var switchSizes = photo.rotation === 90 || photo.rotation === 270
     if (switchSizes) {
         var a = width
@@ -287,22 +283,49 @@ function applyPhotoParamsToContainerAndImg(photo, img, container, maxWidth, maxH
     imgWidth *= scale
     imgHeight *= scale
 
+    var canvas = document.createElement('canvas')
+    canvas.width = width * 2
+    canvas.height = height * 2
+    canvas.style.width = width + 'px'
+    canvas.style.height = height + 'px'
+
+    var ctx = canvas.getContext('2d')
+    var horisScale = 1
+    var vertScale = 1
+    if (photo.flip === 1 || photo.flip === 3) {
+        vertScale = -1
+    }
+    if (photo.flip === 2 || photo.flip === 3) {
+        horisScale = -1
+    }
+
+    ctx.setTransform(horisScale, 0, 0, vertScale, width, height)
+    ctx.rotate(photo.rotation * Math.PI / 180)
+
+    var sx = 0
+    var sy = 0
+    var sw = img.width
+    var sh = img.height
+    if (photo.crop && photo.crop.length === 4) {
+        var tx = photo.crop[0]
+        var ty = photo.crop[1]
+        var bx = photo.crop[2]
+        var by = photo.crop[3]
+
+        wScale = bx - tx
+        hScale = by - ty
+
+        sx = img.width * tx
+        sy = img.height * ty
+        sw = img.width * (bx - tx)
+        sh = img.height * (by - ty)
+    }
+    ctx.drawImage(img, sx, sy, sw, sh, -width, -height, width * 2, height * 2)
+
     container.style.width = width + 'px'
     container.style.height = height + 'px'
-    img.style.width = imgWidth + 'px'
-    img.style.height = imgHeight + 'px'
-    applyPhotoParams(img, photoParams)
-}
 
-function applyPhotoParams(img, params) {
-    if (params.transform) {
-        img.style.transform = params.transform
-        img.style.webkitTransform = params.transform
-    }
-    if (params.clipPath) {
-        img.style.clipPath = params.clipPath
-        img.style.webkitClipPath = params.clipPath
-    }
+    return canvas
 }
 
 function openCookingScreen() {
@@ -315,9 +338,9 @@ function openCookingScreen() {
     var createPhotoWrapper = function (photo, img, container, maxWidth, maxHeight) {
         var imgContainer = document.createElement('div')
         imgContainer.classList.add('cookingPhotoContainer')
-        imgContainer.appendChild(img)
 
-        applyPhotoParamsToContainerAndImg(photo, img, imgContainer, maxWidth, maxHeight)
+        var canvas = createCanvasFromImageAndTransforms(photo, img, imgContainer, maxWidth, maxHeight)
+        imgContainer.appendChild(canvas)
 
         container.appendChild(imgContainer)
     }
@@ -356,6 +379,8 @@ function mixSelectedPhotos() {
     if (mixBtn.classList.contains('loading')) {
         return
     }
+
+    yaReachGoal('mix')
 
     mixId++
 
@@ -444,6 +469,8 @@ function openResultScreen(data, imgObject) {
     }
     shareBtn.addEventListener('click', onShareClick)
 
+    var removeTipsFunc
+
     setTimeout(function () {
         if (destroyed) {
             return
@@ -454,6 +481,14 @@ function openResultScreen(data, imgObject) {
             path: data.url,
             imgObject: imgObject,
             momentum: true,
+            onZoom: function () {
+                showZoomTip = false
+                
+                if (removeTipsFunc) {
+                    removeTipsFunc()
+                    removeTipsFunc = undefined
+                }
+            },
             onRender: function () {
                 if (answerIsVisible && pinchZoom) {
                     var dx = pinchZoom.position.x
@@ -483,6 +518,26 @@ function openResultScreen(data, imgObject) {
 
         setTimeout(function () {
             canvas.style.opacity = '1'
+
+            if (showZoomTip) {
+                var arrowLeft = new Image()
+                arrowLeft.classList.add('leftArrowTip')
+                arrowLeft.src = '/static/img/arrow-long-left.svg'
+                arrowLeft.style.bottom = (pinchZoom.initPosition.y / 2 - 14) + 'px'
+
+                var arrowRight = new Image()
+                arrowRight.classList.add('rightArrowTip')
+                arrowRight.src = '/static/img/arrow-long-left.svg'
+                arrowRight.style.top = (pinchZoom.initPosition.y / 2 - 13) + 'px'
+
+                body.appendChild(arrowLeft)
+                body.appendChild(arrowRight)
+
+                removeTipsFunc = function () {
+                    body.removeChild(arrowLeft)
+                    body.removeChild(arrowRight)
+                }
+            }
 
             /*if (data.bboxs && data.bboxs.length && pinchZoom) {
                 var bbox = data.bboxs[0]
@@ -623,6 +678,9 @@ for (var i = 0; i < crowdPhotos.length; i++) {
             photo.addEventListener('click', function () {
                 crowdPhoto = createPhotoObject({
                     url: photo.src
+                })
+                yaReachGoal('crowdPhoto', {
+                    index: i
                 })
                 openCookingScreen()
             })

@@ -730,6 +730,7 @@ body, html {
         -ms-flex-align: center;
             align-items: center;
     margin: 0 22px 10px;
+    position: relative;
 }
 
 #resultScreen canvas {
@@ -739,4 +740,78 @@ body, html {
     -webkit-transition: opacity 0.3s ease-in;
     -o-transition: opacity 0.3s ease-in;
     transition: opacity 0.3s ease-in;
+}
+
+.leftArrowTip {
+    position: absolute;
+    width: 15px;
+    left: -15px;
+    -webkit-transform: rotate(-45deg);
+    -ms-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+    -webkit-animation: arrowLeftMove 1.5s infinite linear;
+    animation: arrowLeftMove 1.5s infinite linear;
+}
+
+.rightArrowTip {
+    position: absolute;
+    width: 15px;
+    right: -15px;
+    -webkit-transform: rotate(135deg);
+    -ms-transform: rotate(135deg);
+    transform: rotate(135deg);
+    -webkit-animation: arrowRightMove 1.5s infinite linear;
+    animation: arrowRightMove 1.5s infinite linear;
+}
+
+@-webkit-keyframes arrowLeftMove {
+    0%, 100% {
+        -webkit-transform: rotate(-45deg);
+        -ms-transform: rotate(-45deg);
+        transform: rotate(-45deg);
+    }
+    50% {
+        -webkit-transform: rotate(-45deg) translateX(-5px);
+        -ms-transform: rotate(-45deg) translateX(-5px);
+        transform: rotate(-45deg) translateX(-5px);
+    }
+}
+
+@keyframes arrowLeftMove {
+    0%, 100% {
+        -webkit-transform: rotate(-45deg);
+        -ms-transform: rotate(-45deg);
+        transform: rotate(-45deg);
+    }
+    50% {
+        -webkit-transform: rotate(-45deg) translateX(-5px);
+        -ms-transform: rotate(-45deg) translateX(-5px);
+        transform: rotate(-45deg) translateX(-5px);
+    }
+}
+
+@-webkit-keyframes arrowRightMove {
+    0%, 100% {
+        -webkit-transform: rotate(135deg);
+        -ms-transform: rotate(135deg);
+        transform: rotate(135deg);
+    }
+    50% {
+        -webkit-transform: rotate(135deg) translateX(-5px);
+        -ms-transform: rotate(135deg) translateX(-5px);
+        transform: rotate(135deg) translateX(-5px);
+    }
+}
+
+@keyframes arrowRightMove {
+    0%, 100% {
+        -webkit-transform: rotate(135deg);
+        -ms-transform: rotate(135deg);
+        transform: rotate(135deg);
+    }
+    50% {
+        -webkit-transform: rotate(135deg) translateX(-5px);
+        -ms-transform: rotate(135deg) translateX(-5px);
+        transform: rotate(135deg) translateX(-5px);
+    }
 }
