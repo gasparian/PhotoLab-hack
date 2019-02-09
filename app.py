@@ -271,6 +271,11 @@ def insert_face(result, CROWD, scale):
 
         w, h = dst_face.shape[:2]
 
+        # 3d warp if face is big enough
+        WARP_2D = False
+        if (h / CROWD.shape[0]) >= .3:
+            WARP_2D = True
+
         ### Warp Image
         if not WARP_2D:
             ## 3d warp
@@ -382,7 +387,7 @@ def prepare_response(responses):
 
 MAX_SIZE_SELFIE = 400 
 MAX_SIZE_CROWD = 1200
-WARP_2D = True
+#WARP_2D = True
 CORRECT_COLOR = True
 MAX_POINTS = 42
 
@@ -423,11 +428,6 @@ def starting_page():
 @crossdomain(origin='*')
 @nocache
 def create_mix(): 
-
-    #rotation : int (0, 90, 180, 270),
-    #flip : int (0,1,2,3), 
-    #crop : floararray,
-
     responses = {"error":False}
     try:
         friend, points_me, points_friend = None, None, None
@@ -455,7 +455,7 @@ def create_mix():
         start = time.time() 
         result = processor.run(crowd, [(me, points_me), 
                                        (friend, points_friend)])
-        CROWD, result_bboxs = insert_face(result, crowd,
+        crowd, result_bboxs = insert_face(result, crowd,
                                           max(old_shape) / MAX_SIZE_CROWD)
         if result_bboxs is None:
             print(" [INFO] Seems like we can't find any faces on one of the photos :( ")
@@ -467,7 +467,6 @@ def create_mix():
             responses["title"] = np.random.choice(PHRASES)
 
             crowd = cv2.resize(crowd, old_shape, Image.LANCZOS)
-            #crowd = cv2.cvtColor(crowd, cv2.COLOR_BGR2RGB)
             retval, buff = cv2.imencode(file_type, crowd)
 
             s3 = boto3.client('s3')
