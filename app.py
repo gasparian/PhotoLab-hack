@@ -191,8 +191,10 @@ class preprocess_img:
                 continue
             selfies_boxes.append(get_selfie_bboxs(selfie))
 
-        selfies_boxes_len = sum([len(my_bboxs) for my_bboxs in selfies_boxes])
-        self.bboxs = np.array(face_detection(crowd))
+        selfies_boxes_len = 0
+        if len(selfies_boxes) == 0:
+            selfies_boxes_len = sum([len(my_bboxs) for my_bboxs in selfies_boxes])
+            self.bboxs = np.array(face_detection(crowd))
         if len(self.bboxs) == 0 or selfies_boxes_len == 0:
             return None
 
@@ -381,7 +383,7 @@ MAX_SIZE_SELFIE = 400
 MAX_SIZE_CROWD = 1200
 WARP_2D = False
 CORRECT_COLOR = True
-MAX_POINTS = 58
+MAX_POINTS = 42
 
 BUCKET_NAME = "storage.ws.pho.to"
 PATH = "photohack/gene"
