@@ -382,7 +382,7 @@ def prepare_response(responses):
 
 MAX_SIZE_SELFIE = 400 
 MAX_SIZE_CROWD = 1200
-WARP_2D = False
+WARP_2D = True
 CORRECT_COLOR = True
 MAX_POINTS = 42
 
