@@ -272,9 +272,9 @@ def insert_face(result, CROWD, scale):
         w, h = dst_face.shape[:2]
 
         # 3d warp if face is big enough
-        WARP_2D = False
+        WARP_2D = True
         if (h / CROWD.shape[0]) >= .3:
-            WARP_2D = True
+            WARP_2D = False
 
         ### Warp Image
         if not WARP_2D:
