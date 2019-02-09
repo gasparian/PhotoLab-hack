@@ -96,6 +96,7 @@ RUN mkdir /root/photolab_hack/static && \
 COPY ./static/js/* /root/photolab_hack/static/js/
 COPY ./static/css/* /root/photolab_hack/static/css/
 COPY ./static/img/* /root/photolab_hack/static/img/
+COPY ./static/fonts/* /root/photolab_hack/static/fonts/
 
 COPY ./models/* /root/photolab_hack/models/
 COPY ./templates/* /root/photolab_hack/templates/

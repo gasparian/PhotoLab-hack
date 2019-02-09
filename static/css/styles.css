@@ -221,6 +221,7 @@
     font-weight: bold;
     text-align: center;
     padding: 10px;
+    padding-top: 20px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
@@ -236,6 +237,7 @@
     display: -ms-flexbox;
     display: flex;
     padding: 10px;
+    padding-bottom: 20px;
      -webkit-box-pack: center;
         -ms-flex-pack: center;
             justify-content: center;
@@ -354,6 +356,10 @@
 
 /** core */
 
+@font-face {
+    font-family: Helvetica;
+    src: url("/static/fonts/font.otf") format("opentype");
+}
 
 .geneHidden {
     display: none !important;
@@ -370,12 +376,15 @@
 /** *** */
 
 body, html {
+    font-size: 16px;
+    line-height: 16px;
     padding: 0;
     margin: 0;
     background: #f2f2f2;
     width: 100%;
     height: 100%;
     overflow: hidden;
+    font-family: Helvetica;
 
     -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari */ /* Konqueror HTML */
@@ -660,7 +669,11 @@ body, html {
 
 #cookingFaces {
     position: relative;
-    height: 45%;
+    -webkit-box-flex: 1;
+        -ms-flex: 1;
+            flex: 1;
+    min-height: 0;
+    min-width: 0;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -670,7 +683,7 @@ body, html {
     -webkit-box-pack: center;
         -ms-flex-pack: center;
             justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 #cookingFaces:after {
@@ -714,12 +727,35 @@ body, html {
             flex: 1;
     min-height: 0;
     min-width: 0;
+    margin-top: 10px;
 }
 
 /** result screen */
 
-.answerIsVisible {
-    background: rgba(0, 0, 0, 0.1) !important;
+.answerIcon {
+    margin-top: 3px;
+    margin-right: 15px;
+}
+
+.answerIcon img {
+    width: 40px;
+    height: 40px;
+}
+
+.openedEye {
+    margin-top: -4px;
+}
+
+.answerIcon .openedEye {
+    display: none;
+}
+
+.answerIcon.answerIsVisible .openedEye {
+    display: block;
+}
+
+.answerIcon.answerIsVisible .closedEye {
+    display: none;
 }
 
 #resultScreen .contentBody {

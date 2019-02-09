@@ -11,22 +11,79 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
   return this;
 }
 
-// TODO: подсказка что можно скейлить результат
 // TODO: query params для скриптов! на каждый чендж
 
+// stats:
 // startScreen - первый экран с картинкой
 // facesScreen - экран с лицами
 // facePhoto - выбор фото. Не стал делать photo1, photo2, потому что нет понимания какая из них один, а какая два, потому что я могу удалить первую, и вторая станет первой, бла бла
 // crowdScreen - экран с фотками толпы
-// crowdPhoto + есть params {index: number}
+// crowdPhoto{} - тыкнул на пресет
+// myCrowdPhoto - свою загрузил
 // cookingScreen - экран с кнопкой mix
 // mix - нажал кнопку микс
 // resultScreen - экран результатов
+// tryingToShare - нажал кнопку шаринга
+// shared - пошарил
+// notShared - не пошарил
+
+var CROWD_PHOTOS_LIST = [
+    {
+        url: 'https://ewedit.files.wordpress.com/2017/07/gettyimages-821100560_master.jpg',
+        id: 1
+    },
+    {
+        url: 'https://a.ltrbxd.com/resized/sm/upload/0d/vz/j0/cr/black-dynamite-1200-1200-675-675-crop-000000.jpg',
+        id: 2
+    },
+    {
+        url: 'https://img-fotki.yandex.ru/get/26/14124454.2d1/0_9e3bf_ed5ddce8_orig.jpg',
+        id: 3
+    },
+    {
+        url: 'https://i.ytimg.com/vi/z9mUFSexdlE/maxresdefault.jpg',
+        id: 4
+    },
+    {
+        url: 'https://cdn.shazoo.ru/216426_N1qt1Xm7x4_j4nzfdtozpiiwkljklia.png',
+        id: 5
+    },
+    {
+        url: 'https://imgflip.com/s/meme/Distracted-Boyfriend.jpg',
+        id: 6
+    },
+    {
+        url: 'https://gl-images.condecdn.net/image/7j0meyqERjZ/crop/1620/f/sex.jpg',
+        id: 7
+    },
+    {
+        url: 'https://www.vladtime.ru/uploads/posts/2018-07/1530443463_maxresdefault.jpg',
+        id: 8
+    },
+    {
+        url: 'https://pbs.twimg.com/media/DxGrh3JU8AAuND_.jpg',
+        id: 9
+    },
+    {
+        url: 'https://www.bellmedia.ca/wp-content/uploads/2019/01/582700_570948_3621x2400-1280x800.jpg',
+        id: 10
+    },
+    {
+        url: 'https://fsmedia.imgix.net/5a/ed/ef/b8/b0e9/472e/9793/2eacf1d02227/han-and-chewbacca.jpeg',
+        id: 11
+    },
+    {
+        url: 'https://staff-online.ru/wp-content/uploads/2016/12/gosti-shou.jpg',
+        id: 12
+    }
+]
+var CROWD_PHOTO_ID_OFFSET = 0
 
 var facePhotoId = 0
 var mixId = 0
 var facesPhotos = []
 var crowdPhoto = createPhotoObject()
+var resultWasShared = false
 
 var showZoomTip = true
 var shareBtn = document.getElementById('shareBtn')
@@ -36,7 +93,11 @@ var facesDiv = document.getElementById('facesDiv')
 var progressSteps = document.getElementById('progressSteps')
 var screensStack = []
 
-function yaReachGoal(targetName, params) {
+function yaReachGoal(targetName) {
+    if (isLocalTest()) {
+        return
+    }
+
     ym(52246906, 'reachGoal', targetName)
 }
 
@@ -85,7 +146,7 @@ function pushScreen(id, destroyFunc) {
     updateSteps()
 }
 
-function popScreen() {
+function popScreen(disableStat) {
     if (screensStack.length === 1) {
         return // cannot pop last screen
     }
@@ -100,10 +161,18 @@ function popScreen() {
     }
     screensStack.length = screensStack.length - 1
 
+    if (!disableStat) {
+        yaReachGoal('closeScreen')
+    }
+
     updateSteps()
 }
 
 function resetScreens() {
+    if (tryShowAlertThatResultWillBeLost(resetScreens)) {
+        return
+    }
+
     facesDiv.innerHTML = ''
     facesPhotos.forEach(function (photo) {
         if (photo.destroy) {
@@ -120,7 +189,7 @@ function resetScreens() {
     }
 
     while(screensStack.length > 1) {
-        popScreen()
+        popScreen(true)
     }
 }
 
@@ -150,6 +219,8 @@ function selectCrowdPhoto() {
     selectNativePhoto(function (photo) {
         crowdPhoto = createPhotoObject(photo)
         openCookingScreen()
+
+        yaReachGoal('myCrowdPhoto')
     })
 }
 
@@ -349,7 +420,10 @@ function openCookingScreen() {
         var img = new Image()
         img.addEventListener('load', function () {
             var bRect = cookingFaces.getBoundingClientRect()
-            var maxWidth = bRect.width * 0.45
+            var maxWidth = bRect.width
+            if (facesPhotos.length > 1) {
+                maxWidth = bRect.width * 0.45
+            }
             var maxHeight = bRect.height
             createPhotoWrapper(photo, img, cookingFaces, maxWidth, maxHeight)
         })
@@ -483,7 +557,7 @@ function openResultScreen(data, imgObject) {
             momentum: true,
             onZoom: function () {
                 showZoomTip = false
-                
+
                 if (removeTipsFunc) {
                     removeTipsFunc()
                     removeTipsFunc = undefined
@@ -584,6 +658,7 @@ function openResultScreen(data, imgObject) {
         }, 100)
     }, 200)
 
+    resultWasShared = false
     pushScreen('resultScreen', function () {
         destroyed = true
         answerBtn.classList.remove('answerIsVisible')
@@ -600,11 +675,15 @@ function shareResult(data) {
     var callbackName = 'nativeShareCallback'
     window[callbackName] = function (result) {
         if (result) {
-            // shared
+            resultWasShared = true
+            yaReachGoal('shared')
         } else {
-            // not shared
+            resultWasShared = false
+            yaReachGoal('notShared')
         }
     }
+
+    yaReachGoal('tryingToShare')
 
     var title = data.title || 'Find yourself in the crowd!'
     var description = '#secretsout challenge'
@@ -614,6 +693,40 @@ function shareResult(data) {
         '&og_description=' + encodeURIComponent(description) + 
         '&func=' + callbackName
     location.href = link
+}
+
+function backFromResult() {
+    if (tryShowAlertThatResultWillBeLost(backFromResult)) {
+        return
+    }
+
+    popScreen()
+    popScreen()
+}
+
+function tryShowAlertThatResultWillBeLost(callback) {
+    if (resultWasShared) {
+        return false
+    }
+
+    var title = 'Attention!'
+    var description = 'Current mix will be lost. Wanna save it on your facebook?'
+
+    showAlert(title, description, [{
+        text: "I don't care",
+        passive: true,
+        onClick: function () {
+            resultWasShared = true
+            callback()
+        }
+    }, {
+        text: 'Share',
+        onClick: function () {
+            shareBtn.click()
+        }
+    }])
+
+    return true
 }
 
 function safeExec(callback, defaultValue) {
@@ -670,22 +783,23 @@ function showAlert(title, description, buttons) {
     }, 10)
 }
 
-// subscribe crowd photos click
-var crowdPhotos = document.querySelectorAll('.crowdList img')
-for (var i = 0; i < crowdPhotos.length; i++) {
-    ;(function (i) {
-        var photo = crowdPhotos[i]
-            photo.addEventListener('click', function () {
-                crowdPhoto = createPhotoObject({
-                    url: photo.src
-                })
-                yaReachGoal('crowdPhoto', {
-                    index: i
-                })
-                openCookingScreen()
+function generateCrowdPhotosList() {
+    var crowdList = document.querySelector('.crowdList')
+
+    CROWD_PHOTOS_LIST.forEach(function (photo) {
+        var img = new Image()
+        img.src = photo.url
+        img.addEventListener('click', function () {
+            crowdPhoto = createPhotoObject({
+                url: photo.url
             })
-    }(i));
+            yaReachGoal('crowdPhoto' + photo.id)
+            openCookingScreen()
+        })
+
+        crowdList.appendChild(img)
+    })
 }
 
-// open first screen
+generateCrowdPhotosList()
 openStartScreen()

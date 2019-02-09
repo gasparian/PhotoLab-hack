@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Gene</title>
 
-    <link rel="stylesheet" href="/static/css/styles.css?rnd=11"/>
+    <link rel="stylesheet" href="/static/css/styles.css?rnd=12"/>
 
     <!-- Yandex.Metrika counter --> <script type="text/javascript" > (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)}; m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)}) (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym"); ym(52246906, "init", { id:52246906, clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true }); </script> <noscript><div><img src="https://mc.yandex.ru/watch/52246906" style="position:absolute; left:-9999px;" alt="" /></div></noscript> <!-- /Yandex.Metrika counter -->
 
@@ -15,7 +15,7 @@
     <div class="container">
         <div class="screen geneHidden" id="startScreen">
             <div class="onboardingContent">
-                <img src="/static/img/onboarding3.png" />
+                <img src="/static/img/onboarding3.png" onclick="openFacesScreen()" />
             </div>
             <div class="onboardingStart">
                 <div class="geneBtn" onclick="openFacesScreen()">
@@ -52,19 +52,6 @@
                 <div class="crowdList gene-custom-scroll">
                     <div class="genePlus" onclick="selectCrowdPhoto()">
                     </div>
-
-                    <img src="https://ewedit.files.wordpress.com/2017/07/gettyimages-821100560_master.jpg" />
-                    <img src="https://a.ltrbxd.com/resized/sm/upload/0d/vz/j0/cr/black-dynamite-1200-1200-675-675-crop-000000.jpg" />
-                    <img src="https://img-fotki.yandex.ru/get/26/14124454.2d1/0_9e3bf_ed5ddce8_orig.jpg" />
-                    <img src="https://i.ytimg.com/vi/z9mUFSexdlE/maxresdefault.jpg" />
-                    <img src="https://cdn.shazoo.ru/216426_N1qt1Xm7x4_j4nzfdtozpiiwkljklia.png" />
-                    <img src="https://imgflip.com/s/meme/Distracted-Boyfriend.jpg" />
-                    <img src="https://gl-images.condecdn.net/image/7j0meyqERjZ/crop/1620/f/sex.jpg" />
-                    <img src="https://www.vladtime.ru/uploads/posts/2018-07/1530443463_maxresdefault.jpg" />
-                    <img src="https://pbs.twimg.com/media/DxGrh3JU8AAuND_.jpg" />
-                    <img src="https://www.bellmedia.ca/wp-content/uploads/2019/01/582700_570948_3621x2400-1280x800.jpg" />
-                    <img src="https://fsmedia.imgix.net/5a/ed/ef/b8/b0e9/472e/9793/2eacf1d02227/han-and-chewbacca.jpeg" />
-                    <img src="https://staff-online.ru/wp-content/uploads/2016/12/gosti-shou.jpg" />
                 </div>
                 <div class="actionButtons">
                     <div class="geneBtn bordered" onclick="popScreen()">
@@ -108,6 +95,10 @@
                     Share result and <b>tag friends</b>!
                 </span>
                 <div class="geneFlexDumb"></div>
+                <div class="answerIcon" id="answerBtn">
+                    <img class="openedEye" src="/static/img/opened-eye.svg" />
+                    <img class="closedEye" src="/static/img/closed-eye.svg" />
+                </div>
                 <svg transform="scale(1.5)" version="1.1" xmlns="https://www.w3.org/2000/svg" xmlns:xlink="https://www.w3.org/1999/xlink" x="0px" y="0px" width="21px" height="21px" viewBox="0 0 21 21" enable-background="new 0 0 21 21" xml:space="preserve" onclick="resetScreens()">
                     <g>
                         <path d="M16.615,10.368c0-3.372-2.744-6.116-6.115-6.116c-3.375,0-6.117,2.743-6.117,6.116c0,3.372,2.744,6.115,6.117,6.115
@@ -128,8 +119,8 @@
                 <div class="contentBody">
                 </div>
                 <div class="actionButtons">
-                    <div class="geneBtn bordered" id="answerBtn">
-                        Answer
+                    <div class="geneBtn bordered" onclick="backFromResult()">
+                        Back
                     </div>
                     <div></div>
                     <div class="geneBtn" id="shareBtn">
@@ -167,6 +158,6 @@
     <script type="text/javascript" src="/static/js/promise.min.js"></script>
     <script type="text/javascript" src="/static/js/impetus.js?rnd=1"></script>
     <script type="text/javascript" src="/static/js/pinch-zoom-canvas.js?rnd=5"></script>
-    <script type="text/javascript" src="/static/js/index.js?rnd=13"></script>
+    <script type="text/javascript" src="/static/js/index.js?rnd=15"></script>
 </body>
 </html>
