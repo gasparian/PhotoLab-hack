@@ -385,6 +385,12 @@
     min-width: 0;
 }
 
+.textPreloading {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+}
+
 /** *** */
 
 body, html {
@@ -437,8 +443,8 @@ body, html {
             flex-direction: row;
     height: 48px;
     padding: 0 20px;
-    margin: 10px 0 10px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    margin-bottom: 10px;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.24);
     -webkit-box-sizing: border-box;
             box-sizing: border-box;
     -webkit-box-pack: center;
@@ -487,7 +493,8 @@ body, html {
 
 /** onboarding */
 
-.onboardingContent {
+/* custom class for old screen */
+.onboardingContent1 {
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -516,7 +523,8 @@ body, html {
     -webkit-box-pack: center;
         -ms-flex-pack: center;
             justify-content: center;
-    height: 100px;
+    height: 80px;
+    padding-top: 20px;
 }
 
 /** faces screen */
@@ -546,8 +554,6 @@ body, html {
         -ms-flex-pack: center;
             justify-content: center;
     width: 200px;
-    height: 200px;
-    max-height: 35%;
     background: rgba(0, 0, 0, 0.2);
     -webkit-transition: all 0.2s ease-in;
     -o-transition: all 0.2s ease-in;
@@ -628,6 +634,22 @@ body, html {
 }
 
 /** crowd screen */
+
+#crowdScreen .headerDumb {
+    height: 48px;
+}
+
+#crowdScreen .header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    margin-bottom: 0;
+}
+
+#crowdScreen .crowdList {
+    padding-top: 10px;
+}
 
 .crowdList {
     -webkit-box-flex: 1;

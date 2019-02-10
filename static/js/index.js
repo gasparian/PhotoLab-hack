@@ -161,6 +161,11 @@ var CROWD_PHOTOS_LIST = [
     }
 ]
 
+var USE_TEST_SERVER = false
+var COUNTRY_SHORT_NAME = (getParameterByName('country') || '').trim().toLowerCase()
+var IS_USA = COUNTRY_SHORT_NAME === 'us' || COUNTRY_SHORT_NAME === 'um'
+var IS_INDIA = COUNTRY_SHORT_NAME === 'in'
+
 var LAST_DATA
 
 var facePhotoId = 0
@@ -168,6 +173,7 @@ var mixId = 0
 var facesPhotos = []
 var crowdPhoto = createPhotoObject()
 var resultWasShared = false
+var crowdListGenerated = false
 
 var showZoomTip = true
 var shareBtn = document.getElementById('shareBtn')
@@ -278,18 +284,63 @@ function resetScreens() {
 }
 
 function openStartScreen() {
-    var rnd = Math.random()
+    // TODO: check country, landing by country
 
+    var screenNumber
+    var imgName
+    var rnd = Math.random()
     if (rnd > 0.66) {
-        pushScreen('startScreen1')
+        imgName = 'first-onboarding.png'
+        screenNumber = 1
     } else if (rnd > 0.33) {
-        pushScreen('startScreen2')
+        imgName = 'trump-onboarding.png'
+        screenNumber = 2
     } else {
-        pushScreen('startScreen3')
+        imgName = 'fox-onboarding.png'
+        screenNumber = 3
     }
+
+    var screenId = 'startScreen' + screenNumber
+
+    var img = new Image()
+    img.classList.add('onboardingImage')
+    img.addEventListener('click', function () {
+        openFacesScreen()
+    })
+
+    var screen = document.getElementById(screenId)
+    if (screenNumber === 1) {
+        img.addEventListener('load', function () {
+            var content = document.createElement('div')
+            content.classList.add('onboardingContent1')
+            content.appendChild(img)
+
+            var startBtn = document.createElement('div')
+            startBtn.classList.add('geneBtn')
+            startBtn.innerHTML = 'Start'
+            startBtn.addEventListener('click', function () {
+                openFacesScreen()
+            })
+
+            var startDiv = document.createElement('div')
+            startDiv.classList.add('onboardingStart')
+            startDiv.appendChild(startBtn)
+
+            screen.appendChild(content)
+            screen.appendChild(startDiv)
+        })
+    } else {
+        screen.appendChild(img)
+    }
+
+    img.src = '/static/img/' + imgName
+
+    pushScreen(screenId)
 }
 
 function openFacesScreen() {
+    generateCrowdPhotosList()
+
     if (screensStack.length > 0) {
         setVisible(screensStack[0].div, false)
     }
@@ -310,6 +361,7 @@ function selectFacePhoto() {
 function selectCrowdPhoto() {
     selectNativePhoto(function (photo) {
         crowdPhoto = createPhotoObject(photo)
+
         openCookingScreen()
 
         yaReachGoal('myCrowdPhoto')
@@ -325,8 +377,16 @@ function pushFacePhoto(photo) {
     spinner.classList.add('geneSpinner')
     spinner.innerHTML = 'Loading...'
 
+    // 58 header
+    // 50 footer
+    // 20 margin
+    // 50 - na vsyakii
+    var maxContainerHeight = window.innerHeight - 58 - 50 - 20 - 50
+    maxContainerHeight = maxContainerHeight / 2
+
     var containerDiv = document.createElement('div')
     containerDiv.classList.add('facePhotoContainer')
+    containerDiv.style.height = maxContainerHeight + 'px'
     containerDiv.appendChild(spinner)
 
     facesDiv.appendChild(containerDiv)
@@ -335,9 +395,7 @@ function pushFacePhoto(photo) {
     img.addEventListener('load', function () {
         var maxHeight = (body.getBoundingClientRect().height - 20) / 2
         var maxWidth = body.getBoundingClientRect().width
-
         var canvas = createCanvasFromImageAndTransforms(photo, img, containerDiv, maxWidth, maxHeight)
-        containerDiv.style.maxHeight = 'none'
 
         setTimeout(function () {
             containerDiv.innerHTML = ''
@@ -561,7 +619,9 @@ function mixSelectedPhotos() {
         crowd: crowdPhoto
     }
 
-    fetch('http://gene.ws.pho.to/create_mix?data=' + JSON.stringify(payload))
+    var host = USE_TEST_SERVER ? 'http://192.168.88.8:8080' : 'http://gene.ws.pho.to'
+
+    fetch(host + '/create_mix?data=' + JSON.stringify(payload))
     .then(function (resp) { return resp.json() })
     .then(function (data) {
         if (thisMixId !== mixId) {
@@ -902,8 +962,13 @@ function showAlert(title, description, buttons) {
 }
 
 function generateCrowdPhotosList() {
-    var crowdList = document.querySelector('.crowdList')
+    if (crowdListGenerated) {
+        return
+    }
 
+    crowdListGenerated = true
+
+    var crowdList = document.querySelector('.crowdList')
     CROWD_PHOTOS_LIST.forEach(function (photo) {
         var img = new Image()
         img.src = photo.url
@@ -919,5 +984,11 @@ function generateCrowdPhotosList() {
     })
 }
 
-generateCrowdPhotosList()
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]')
+    var regex = new RegExp('[\\?&]' + name + '=([^&#]*)')
+    var results = regex.exec(location.search)
+    return results === null ? '' : decodeURIComponent(results[1])
+}
+
 openStartScreen()
