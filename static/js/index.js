@@ -47,7 +47,7 @@ var SERVER_ORIGIN = 'http://gene.ws.pho.to'
 
 var IS_IOS = !!getParameterByName('vicman_unified_id')
 var IS_PRODUCTION_WRAPPER = IS_IOS || !!(getParameterByName('aid') || '')
-var USE_TEST_SERVER = IS_PRODUCTION_WRAPPER || false
+var USE_TEST_SERVER = !IS_PRODUCTION_WRAPPER || false
 var COUNTRY_SHORT_NAME = (getParameterByName('country') || '').trim().toLowerCase()
 var IS_USA = COUNTRY_SHORT_NAME === 'us' || COUNTRY_SHORT_NAME === 'um'
 var IS_INDIA = IS_IOS && COUNTRY_SHORT_NAME === 'in'
