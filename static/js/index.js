@@ -843,10 +843,12 @@ function shareResult(data, eventName) {
 
     var title = data.title || 'Find yourself in the crowd!'
     var description = '#secretsout challenge'
+    var btnText = 'Place your photo in a crowd'
 
     var link = 'callback:nativeShare?og_image=' + encodeURIComponent(data.url) +
         '&og_title=' + encodeURIComponent(title) +
         '&og_description=' + encodeURIComponent(description) + 
+        '&lp_button_cta=' + encodeURIComponent(btnText) +
         '&func=' + callbackName
     location.href = link
 }
