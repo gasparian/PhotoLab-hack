@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Gene</title>
 
-    <link rel="stylesheet" href="/static/css/styles.css?rnd=15"/>
+    <link rel="stylesheet" href="/static/css/styles.css?rnd=20"/>
 
     <!-- Yandex.Metrika counter --> <script type="text/javascript" > (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)}; m[i].l=1*new Date();k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)}) (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym"); ym(52246906, "init", { id:52246906, clickmap:true, trackLinks:true, accurateTrackBounce:true, webvisor:true }); </script> <noscript><div><img src="https://mc.yandex.ru/watch/52246906" style="position:absolute; left:-9999px;" alt="" /></div></noscript> <!-- /Yandex.Metrika counter -->
 
@@ -14,11 +14,9 @@
 <body>
     <div class="container">
         <div class="textPreloading">Demo</div>
-        <div class="screen geneHidden" id="startScreen1">
+        <div class="screen geneHidden" id="startScreenIndia">
         </div>
-        <div class="screen geneHidden" id="startScreen2">
-        </div>
-        <div class="screen geneHidden" id="startScreen3">
+        <div class="screen geneHidden" id="startScreenAll">
         </div>
         <div class="screen geneHidden" id="facesScreen">
             <div class="header">
@@ -91,7 +89,7 @@
                     Share and <b>tag friends</b>!
                 </span>
                 <div class="geneFlexDumb"></div>
-                <div class="answerIcon" id="answerBtn">
+                <div class="answerIcon" id="answerBtn" onclick="onAnswerClick()">
                     <img class="openedEye" src="/static/img/opened-eye.svg" />
                     <img class="closedEye" src="/static/img/closed-eye.svg" />
                 </div>
@@ -119,12 +117,74 @@
                         Back
                     </div>
                     <div></div>
-                    <div class="geneBtn" id="shareBtn">
+                    <div class="geneBtn" id="shareBtn" onclick="onShareButtonClick()">
                         Share
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- SHORT FLOW -->
+
+        <div class="screen geneHidden" id="shortFlowScreen">
+            <div class="header">
+                <span>
+                    Select photo of you or your friends
+                </span>
+                <div class="geneFlexDumb"></div>
+                <div class="answerIcon" onclick="onAnswerClick()">
+                    <img class="openedEye" src="/static/img/opened-eye.svg" />
+                    <img class="closedEye" src="/static/img/closed-eye.svg" />
+                </div>
+                <svg class="resetIcon" transform="scale(1.5)" version="1.1" xmlns="https://www.w3.org/2000/svg" xmlns:xlink="https://www.w3.org/1999/xlink" x="0px" y="0px" width="21px" height="21px" viewBox="0 0 21 21" enable-background="new 0 0 21 21" xml:space="preserve">
+                    <g>
+                        <path d="M16.615,10.368c0-3.372-2.744-6.116-6.115-6.116c-3.375,0-6.117,2.743-6.117,6.116c0,3.372,2.744,6.115,6.117,6.115
+                            v-2.262l5.779,2.889L10.5,20.001v-2.266c-4.062,0-7.369-3.305-7.369-7.366C3.131,6.305,6.438,3,10.5,3
+                            c4.062,0,7.367,3.305,7.369,7.368H16.615z"></path>
+                        <g opacity="0.4">
+                            <path fill="#FFFFFF" d="M10.5,3c4.062,0,7.367,3.305,7.369,7.368h-1.254c0-3.372-2.744-6.116-6.115-6.116
+                                c-3.375,0-6.117,2.743-6.117,6.116c0,3.372,2.744,6.115,6.117,6.115v-2.262l5.779,2.889L10.5,20.001v-2.266
+                                c-4.062,0-7.369-3.305-7.369-7.366C3.131,6.305,6.438,3,10.5,3 M10.5,2L10.5,2c-4.615,0-8.369,3.755-8.369,8.369
+                                c0,4.275,3.224,7.812,7.369,8.307v1.325v1.618l1.447-0.724l5.779-2.891l1.789-0.895l-1.789-0.894l-5.779-2.889L9.5,12.604v1.618
+                                v1.164c-2.345-0.466-4.117-2.539-4.117-5.017c0-2.821,2.296-5.116,5.117-5.116c2.82,0,5.115,2.295,5.115,5.116v1h1h1.254h1v-1
+                                C18.867,5.754,15.112,2,10.5,2L10.5,2z"></path>
+                        </g>
+                    </g>
+                </svg>
+            </div>
+            <div class="content">
+                <div class="contentBody">
+                    <div class="faceShortPlaceholder" onclick="selectFacePhoto()">
+                        <div class="genePlus bluePlus">
+                        </div>
+                        <div class="geneSpinner geneHidden">Loading...</div>
+                        <svg class="errorIcon" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" x="0px" y="0px" viewBox="0 0 380 380" style="enable-background:new 0 0 380 380;" xml:space="preserve" width="512px" height="512px">
+                            <path d="M190.001,0C85.233,0,0.001,85.233,0.001,190s85.231,190,189.999,190c104.767,0,189.998-85.233,189.998-190  S294.767,0,190.001,0z M190.001,64.225c23.047,0,44.662,6.237,63.258,17.103l-171.93,171.93  C70.462,234.663,64.225,213.047,64.225,190C64.225,120.647,120.649,64.225,190.001,64.225z M190.001,315.775  c-23.048,0-44.662-6.237-63.258-17.103l171.93-171.93c10.866,18.596,17.103,40.211,17.103,63.258  C315.776,259.353,259.352,315.775,190.001,315.775z" fill="#FFFFFF"/>
+                        </svg>
+                    </div>
+                    <canvas id="shortFlowResultCanvas"></canvas>
+                </div>
+                <div class="actionButtons">
+                    <div class="geneBtn bordered geneHidden" id="resetBtn">
+                        Reset
+                    </div>
+                    <div class="geneBtn bordered geneHidden" id="randomCrowdBtn">
+                        Mix again
+                    </div>
+                    <div></div>
+                    <div class="geneBtn geneHidden" id="shareBtnShort">
+                        Share
+                    </div>
+                    <div class="geneBtn geneHidden" id="tryAgainBtn">
+                        Try again
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SHORT FLOW -->
+
+
         <div class="progress-steps geneHidden" id="progressSteps">
             <div class="progress-steps__step progress-steps__step--active" id="facesScreenStep">
                 <div class="progress-steps__point"></div>
@@ -154,6 +214,6 @@
     <script type="text/javascript" src="/static/js/promise.min.js"></script>
     <script type="text/javascript" src="/static/js/impetus.js?rnd=1"></script>
     <script type="text/javascript" src="/static/js/pinch-zoom-canvas.js?rnd=5"></script>
-    <script type="text/javascript" src="/static/js/index.js?rnd=18"></script>
+    <script type="text/javascript" src="/static/js/index.js?rnd=20"></script>
 </body>
 </html>

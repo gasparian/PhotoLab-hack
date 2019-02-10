@@ -15,9 +15,8 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
 
 // stats:
 // closeScreen - закрыл экран (нажал 'back', может когда то еще)
-// startScreen1 - первый экран с картинкой
-// startScreen2 - первый экран с картинкой 2
-// startScreen3 - первый экран с картинкой 3
+// startScreenIndia - ios & india
+// startScreenAll - экран для всех остальных
 // facesScreen - экран с лицами
 // facePhoto - выбор фото на первом экране
 // removefacePhoto - удалил фотку на первом экране
@@ -33,138 +32,149 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
 // shared - пошарил
 // notShared - не пошарил
 
-var CROWD_PHOTOS_LIST = [
-    /*{
-        url: 'https://ewedit.files.wordpress.com/2017/07/gettyimages-821100560_master.jpg',
-        id: 1
-    },
-    {
-        url: 'https://a.ltrbxd.com/resized/sm/upload/0d/vz/j0/cr/black-dynamite-1200-1200-675-675-crop-000000.jpg',
-        id: 2
-    },
-    {
-        url: 'https://img-fotki.yandex.ru/get/26/14124454.2d1/0_9e3bf_ed5ddce8_orig.jpg',
-        id: 3
-    },
-    {
-        url: 'https://i.ytimg.com/vi/z9mUFSexdlE/maxresdefault.jpg',
-        id: 4
-    },
-    {
-        url: 'https://cdn.shazoo.ru/216426_N1qt1Xm7x4_j4nzfdtozpiiwkljklia.png',
-        id: 5
-    },
-    {
-        url: 'https://imgflip.com/s/meme/Distracted-Boyfriend.jpg',
-        id: 6
-    },
-    {
-        url: 'https://gl-images.condecdn.net/image/7j0meyqERjZ/crop/1620/f/sex.jpg',
-        id: 7
-    },
-    {
-        url: 'https://www.vladtime.ru/uploads/posts/2018-07/1530443463_maxresdefault.jpg',
-        id: 8
-    },
-    {
-        url: 'https://pbs.twimg.com/media/DxGrh3JU8AAuND_.jpg',
-        id: 9
-    },
-    {
-        url: 'https://www.bellmedia.ca/wp-content/uploads/2019/01/582700_570948_3621x2400-1280x800.jpg',
-        id: 10
-    },
-    {
-        url: 'https://fsmedia.imgix.net/5a/ed/ef/b8/b0e9/472e/9793/2eacf1d02227/han-and-chewbacca.jpeg',
-        id: 11
-    },
-    {
-        url: 'https://staff-online.ru/wp-content/uploads/2016/12/gosti-shou.jpg',
-        id: 12
-    },*/
+// ----- short ------
+// shortFlowFacePhoto - выбрал фото
+// shortFlowCrowdPhoto{} - рандомная фотка толпы
+// shortFlowMix - микс
+// shortFlowNoFaces - ошибка "нет лиц"
+// shortFlowError - ошибка другая, чет с сервером
+// shortFlowResetIcon - нажал иконку сброса
+// shortFlowResetButton - нажал кнопку сброса, показвается если ошибка
+// shortFlowMixAgain - нажал 'Mix again'
+// shortFlowTryingToShare - нажал пошарить
 
-    /**
-    NEW PHOTOS
-    **/
+var SERVER_ORIGIN = 'http://gene.ws.pho.to'
 
-    {
-        url: location.origin + '/static/crowd/1.png',
-        id: 13
-    },
-    {
-        url: location.origin + '/static/crowd/2.png',
-        id: 14
-    },
-    {
-        url: location.origin + '/static/crowd/3.png',
-        id: 15
-    },
-    {
-        url: location.origin + '/static/crowd/4.png',
-        id: 16
-    },
-    {
-        url: location.origin + '/static/crowd/5.png',
-        id: 17
-    },
-    {
-        url: location.origin + '/static/crowd/6.png',
-        id: 18
-    },
-    {
-        url: location.origin + '/static/crowd/7.png',
-        id: 19
-    },
-    {
-        url: location.origin + '/static/crowd/8.png',
-        id: 20
-    },
-    {
-        url: location.origin + '/static/crowd/9.png',
-        id: 21
-    },
-    {
-        url: location.origin + '/static/crowd/10.png',
-        id: 22
-    },
-    {
-        url: location.origin + '/static/crowd/11.png',
-        id: 23
-    },
-    {
-        url: location.origin + '/static/crowd/12.png',
-        id: 24
-    },
-    {
-        url: location.origin + '/static/crowd/13.png',
-        id: 25
-    },
-    {
-        url: location.origin + '/static/crowd/14.png',
-        id: 26
-    },
-    {
-        url: location.origin + '/static/crowd/15.png',
-        id: 27
-    },
-    {
-        url: location.origin + '/static/crowd/16.png',
-        id: 28
-    },
-    {
-        url: location.origin + '/static/crowd/17.png',
-        id: 29
-    },
-    {
-        url: location.origin + '/static/crowd/18.png',
-        id: 30
-    }
-]
-
-var USE_TEST_SERVER = false
+var IS_IOS = !!getParameterByName('vicman_unified_id')
+var IS_PRODUCTION_WRAPPER = IS_IOS || !!(getParameterByName('aid') || '')
+var USE_TEST_SERVER = IS_PRODUCTION_WRAPPER || false
 var COUNTRY_SHORT_NAME = (getParameterByName('country') || '').trim().toLowerCase()
 var IS_USA = COUNTRY_SHORT_NAME === 'us' || COUNTRY_SHORT_NAME === 'um'
-var IS_INDIA = COUNTRY_SHORT_NAME === 'in'
+var IS_INDIA = IS_IOS && COUNTRY_SHORT_NAME === 'in'
+
+var CROWD_PHOTOS_LIST
+
+if (IS_INDIA) {
+    CROWD_PHOTOS_LIST = [
+        {
+            url: location.origin + '/static/crowd/40.png',
+            id: 40
+        },
+        {
+            url: location.origin + '/static/crowd/41.jpg',
+            id: 41
+        },
+        {
+            url: location.origin + '/static/crowd/31.jpg',
+            id: 31
+        },
+        {
+            url: location.origin + '/static/crowd/43.jpg',
+            id: 43
+        },
+        {
+            url: location.origin + '/static/crowd/44.png',
+            id: 44
+        },
+        {
+            url: location.origin + '/static/crowd/45.png',
+            id: 45
+        },
+        {
+            url: location.origin + '/static/crowd/46.jpg',
+            id: 46
+        },
+        {
+            url: location.origin + '/static/crowd/47.png',
+            id: 47
+        },
+        {
+            url: location.origin + '/static/crowd/48.png',
+            id: 48
+        },
+        {
+            url: location.origin + '/static/crowd/49.jpg',
+            id: 49
+        }
+    ]
+} else {
+    CROWD_PHOTOS_LIST = [
+        {
+            url: location.origin + '/static/crowd/32.png', // potter
+            id: 32
+        },
+        {
+            url: location.origin + '/static/crowd/31.jpg', // indian men
+            id: 31
+        },
+        {
+            url: location.origin + '/static/crowd/17.png', // hefner
+            id: 17
+        },
+        {
+            url: location.origin + '/static/crowd/20.png', // odin doma
+            id: 20
+        },
+        {
+            url: location.origin + '/static/crowd/30.png', // narnia
+            id: 30
+        },
+        {
+            url: location.origin + '/static/crowd/33.jpg', // friends
+            id: 33
+        },
+        {
+            url: location.origin + '/static/crowd/34.png', // kukli
+            id: 34
+        },
+        {
+            url: location.origin + '/static/crowd/21.png', // sinie paciki
+            id: 21
+        },
+        {
+            url: location.origin + '/static/crowd/35.png', // star trek
+            id: 35
+        },
+        {
+            url: location.origin + '/static/crowd/36.png', // straji
+            id: 36
+        },
+        {
+            url: location.origin + '/static/crowd/15.png', // les GoT
+            id: 15
+        },
+        {
+            url: location.origin + '/static/crowd/25.png', // trump
+            id: 25
+        },
+        {
+            url: location.origin + '/static/crowd/27.png', // telki
+            id: 27
+        },
+        {
+            url: location.origin + '/static/crowd/14.png', // jopa
+            id: 14
+        },
+        {
+            url: location.origin + '/static/crowd/37.jpg', // fucks
+            id: 37
+        },
+        {
+            url: location.origin + '/static/crowd/23.png', // karliki
+            id: 23
+        },
+        {
+            url: location.origin + '/static/crowd/38.jpg', // hz cho
+            id: 38
+        },
+        {
+            url: location.origin + '/static/crowd/24.png', // volosatie
+            id: 24
+        }
+    ]
+}
+
+
 
 var LAST_DATA
 
@@ -175,20 +185,19 @@ var crowdPhoto = createPhotoObject()
 var resultWasShared = false
 var crowdListGenerated = false
 
+var answerIsVisible = false
 var showZoomTip = true
 var shareBtn = document.getElementById('shareBtn')
-var answerBtn = document.getElementById('answerBtn')
+var answerBtn
 var mixBtn = document.getElementById('mixBtn')
 var facesDiv = document.getElementById('facesDiv')
 var progressSteps = document.getElementById('progressSteps')
 var screensStack = []
 
 function yaReachGoal(targetName) {
-    if (isLocalTest()) {
-        return
+    if (IS_PRODUCTION_WRAPPER) {
+        ym(52246906, 'reachGoal', targetName)
     }
-
-    ym(52246906, 'reachGoal', targetName)
 }
 
 function createPhotoObject(data) {
@@ -284,61 +293,292 @@ function resetScreens() {
 }
 
 function openStartScreen() {
-    // TODO: check country, landing by country
-
-    var screenNumber
+    var screenId
     var imgName
-    var rnd = Math.random()
-    if (rnd > 0.66) {
-        imgName = 'first-onboarding.png'
-        screenNumber = 1
-    } else if (rnd > 0.33) {
-        imgName = 'trump-onboarding.png'
-        screenNumber = 2
+    if (IS_INDIA) {
+        screenId = 'startScreenIndia'
+        imgName = 'india-onboarding.png'
     } else {
-        imgName = 'fox-onboarding.png'
-        screenNumber = 3
+        screenId = 'startScreenAll'
+        imgName = 'all-onboarding.png'
     }
 
-    var screenId = 'startScreen' + screenNumber
+    var screen = document.getElementById(screenId)
 
     var img = new Image()
     img.classList.add('onboardingImage')
     img.addEventListener('click', function () {
         openFacesScreen()
     })
-
-    var screen = document.getElementById(screenId)
-    if (screenNumber === 1) {
-        img.addEventListener('load', function () {
-            var content = document.createElement('div')
-            content.classList.add('onboardingContent1')
-            content.appendChild(img)
-
-            var startBtn = document.createElement('div')
-            startBtn.classList.add('geneBtn')
-            startBtn.innerHTML = 'Start'
-            startBtn.addEventListener('click', function () {
-                openFacesScreen()
-            })
-
-            var startDiv = document.createElement('div')
-            startDiv.classList.add('onboardingStart')
-            startDiv.appendChild(startBtn)
-
-            screen.appendChild(content)
-            screen.appendChild(startDiv)
-        })
-    } else {
+    img.addEventListener('load', function () {
         screen.appendChild(img)
-    }
-
+    })
     img.src = '/static/img/' + imgName
 
     pushScreen(screenId)
 }
 
+/*** SHORT FLOW ***/
+
+var shortFlowPinchZoom
+var shortUIInitialized = false
+var prevCrowdIdx = 0
+var shortFlowState = 'select'
+
+function openShortFlowScreen() {
+    shortFlowState = 'select'
+    updateShortUI()
+    pushScreen('shortFlowScreen')
+}
+
+function selectPhotoShortFlow() {
+    shortFlowState = 'select'
+    updateShortUI()
+
+    selectNativePhoto(function (photo) {
+        facesPhotos = [photo]
+        randomShortCrowdPhotoAndMix()
+
+        yaReachGoal('shortFlowFacePhoto')
+    })
+}
+
+function randomShortCrowdPhotoAndMix() {
+    var randomPhoto = CROWD_PHOTOS_LIST[prevCrowdIdx]
+    prevCrowdIdx++
+    crowdPhoto = createPhotoObject({
+        url: randomPhoto.url
+    })
+
+    yaReachGoal('shortFlowCrowdPhoto' + randomPhoto.id)
+
+    mixSelectedPhotosShort()
+}
+
+function mixSelectedPhotosShort() {
+    yaReachGoal('shortFlowMix')
+
+    shortFlowState = 'loading'
+    updateShortUI()
+
+    sendRequestToServer().then(function (data) {
+        LAST_DATA = data
+
+        if (data.error) {
+            if (data.reason === 'no_faces') {
+                yaReachGoal('shortFlowNoFaces')
+
+                showAlert('Oops!', 'Seems like there are no faces on your photo. Please, check your photo.', [{
+                    text: 'OK'
+                }], function () {
+                    selectPhotoShortFlow()
+                })
+            } else {
+                yaReachGoal('shortFlowError')
+
+                shortFlowState = 'error'
+                updateShortUI()
+
+                showAlert('Oops!', 'Seems like smth went wrong on our side. Please, try again. If problem persists, please, try another photo.', [{
+                    text: 'Cancel',
+                    passive: true
+                }, {
+                    text: 'Try again',
+                    onClick: mixSelectedPhotosShort
+                }])
+            }
+        } else {
+            var img = new Image()
+            img.addEventListener('load', function () {
+                shortFlowState = 'result'
+                updateShortUI()
+            })
+            img.src = data.url
+        }
+    })
+    .catch(function (error) {
+        yaReachGoal('shortFlowError')
+
+        shortFlowState = 'error'
+        updateShortUI()
+
+        showAlert('Oops!', 'Seems like smth went wrong on our side. Please, try again.', [{
+            text: 'Cancel',
+            passive: true
+        }, {
+            text: 'Try again',
+            onClick: mixSelectedPhotosShort
+        }])
+    })
+}
+
+function updateShortUI() {
+    if (shortFlowPinchZoom) {
+        shortFlowPinchZoom.destroy()
+        shortFlowPinchZoom = undefined
+    }
+
+    var screen = document.querySelector('#shortFlowScreen')
+
+    answerBtn = screen.querySelector('.answerIcon')
+    answerBtn.classList.remove('answerIsVisible')
+
+    var body = screen.querySelector('.contentBody')
+    var plus = screen.querySelector('.genePlus')
+    var spinner = screen.querySelector('.geneSpinner')
+    var headerSpan = screen.querySelector('.header span')
+    var placeholder = screen.querySelector('.faceShortPlaceholder')
+    var errorIcon = screen.querySelector('.errorIcon')
+    var answerIcon = screen.querySelector('.answerIcon')
+    var resetIcon = screen.querySelector('.resetIcon')
+
+    var canvas = screen.querySelector('#shortFlowResultCanvas')
+    var resetBtn = screen.querySelector('#resetBtn')
+    var randomCrowdBtn = screen.querySelector('#randomCrowdBtn')
+    var shareBtnShort = screen.querySelector('#shareBtnShort')
+    var tryAgainBtn = screen.querySelector('#tryAgainBtn')
+
+    if (shortFlowState !== 'result') {
+        var ctx = canvas.getContext('2d')
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+    }
+
+    if (shortFlowState === 'select') {
+        placeholder.addEventListener('click', selectPhotoShortFlow)
+    } else {
+        placeholder.addEventListener('remove', selectPhotoShortFlow)
+    }
+
+    if (!shortUIInitialized) {
+        shortUIInitialized = true
+
+        resetIcon.addEventListener('click', function () {
+            yaReachGoal('shortFlowResetIcon')
+
+            shortFlowState = 'select'
+            updateShortUI()
+        })
+        resetBtn.addEventListener('click', function () {
+            yaReachGoal('shortFlowResetButton')
+
+            shortFlowState = 'select'
+            updateShortUI()
+        })
+        randomCrowdBtn.addEventListener('click', function () {
+            yaReachGoal('shortFlowMixAgain')
+
+            randomShortCrowdPhotoAndMix()
+        })
+        shareBtnShort.addEventListener('click', function () {
+            shareResult(LAST_DATA, 'shortFlowTryingToShare')
+        })
+        tryAgainBtn.addEventListener('click', function () {
+            mixSelectedPhotosShort()
+        })
+    }
+
+    function centerText(center) {
+        if (center) {
+            headerSpan.style.width = '100%'
+            headerSpan.style.textAlign = 'center'
+        } else {
+            headerSpan.style.width = 'auto'
+            headerSpan.style.textAlign = 'start'
+        }
+    }
+
+    if (shortFlowState === 'select') {
+        headerSpan.innerHTML = 'Select photo of you or your friends'
+        centerText(true)
+        setVisible(answerIcon, false)
+        setVisible(resetIcon, false)
+
+        setVisible(placeholder, true)
+        setVisible(plus, true)
+        setVisible(spinner, false)
+        setVisible(errorIcon, false)
+        setVisible(canvas, false)
+
+        setVisible(resetBtn, false)
+        setVisible(tryAgainBtn, false)
+        setVisible(randomCrowdBtn, false)
+        setVisible(shareBtnShort, false)
+    } else if (shortFlowState === 'loading') {
+        headerSpan.innerHTML = 'Wait a moment, we are mixing :)'
+        centerText(true)
+        setVisible(answerIcon, false)
+        setVisible(resetIcon, false)
+
+        setVisible(placeholder, true)
+        setVisible(plus, false)
+        setVisible(spinner, true)
+        setVisible(errorIcon, false)
+        setVisible(canvas, false)
+
+        setVisible(resetBtn, false)
+        setVisible(tryAgainBtn, false)
+        setVisible(randomCrowdBtn, false)
+        setVisible(shareBtnShort, false)
+    } else if (shortFlowState === 'error') {
+        headerSpan.innerHTML = 'Something went wrong :('
+        centerText(true)
+        setVisible(answerIcon, false)
+        setVisible(resetIcon, false)
+
+        setVisible(placeholder, true)
+        setVisible(plus, false)
+        setVisible(spinner, false)
+        setVisible(errorIcon, true)
+        setVisible(canvas, false)
+
+        setVisible(resetBtn, true)
+        setVisible(tryAgainBtn, true)
+        setVisible(randomCrowdBtn, false)
+        setVisible(shareBtnShort, false)
+    } else if (shortFlowState === 'result') {
+        headerSpan.innerHTML = 'Share and <b>tag friends</b>!'
+        centerText(false)
+        setVisible(answerIcon, true)
+        setVisible(resetIcon, true)
+
+        setVisible(placeholder, false)
+
+        setVisible(resetBtn, false)
+        setVisible(tryAgainBtn, false)
+        setVisible(randomCrowdBtn, true)
+        setVisible(shareBtnShort, true)
+        setVisible(canvas, true)
+
+        setTimeout(function () {
+            shortFlowPinchZoom = activateZoomCanvas({
+                canvas: canvas,
+                path: LAST_DATA.url
+            }, body)
+        }, 200)
+    } else {
+        showAlert('Oops!', 'Seems like smth went wrong on our side. Reload is needed.', [{
+            text: 'OK'
+        }], function () {
+            document.location.reload(true)
+        })
+    }
+}
+
+/*** SHORT FLOW ***/
+
 function openFacesScreen() {
+    if (Math.random() > 0.5) {
+        openLongFacesScreen()
+    } else {
+        openShortFacesScreen()
+    }
+}
+
+function openShortFacesScreen() {
+    openShortFlowScreen()
+}
+
+function openLongFacesScreen() {
     generateCrowdPhotosList()
 
     if (screensStack.length > 0) {
@@ -428,12 +668,8 @@ function updateFacesScreenUI() {
     setVisible(plus, facesPhotos.length < 2)
 }
 
-function isLocalTest() {
-    return location.host.indexOf('127.0.0.1') !== -1
-}
-
 function selectNativePhoto(onPhotoSelected) {
-    if (isLocalTest()) {
+    if (!IS_PRODUCTION_WRAPPER) {
         var url = Math.random() > 0.5
             ? 'https://s16.stc.all.kpcdn.net/share/i/12/10577981/inx960x640.jpg'
             : 'https://1.bp.blogspot.com/-9QM7ciGXRkQ/V1hsB-wNLBI/AAAAAAAAMoA/eYbSHs00PTAjrI4QAmvYAIGCUe1AuRAnwCLcB/s1600/bryan_cranston_0095.jpg'
@@ -613,17 +849,7 @@ function mixSelectedPhotos() {
 
     mixBtn.classList.add('loading')
 
-    var payload = {
-        me: facesPhotos[0],
-        friend: facesPhotos[1],
-        crowd: crowdPhoto
-    }
-
-    var host = USE_TEST_SERVER ? 'http://192.168.88.8:8080' : 'http://gene.ws.pho.to'
-
-    fetch(host + '/create_mix?data=' + JSON.stringify(payload))
-    .then(function (resp) { return resp.json() })
-    .then(function (data) {
+    sendRequestToServer().then(function (data) {
         if (thisMixId !== mixId) {
             return
         }
@@ -672,7 +898,23 @@ function mixSelectedPhotos() {
     })
 }
 
+function sendRequestToServer() {
+    var payload = {
+        me: facesPhotos[0],
+        friend: facesPhotos[1],
+        crowd: crowdPhoto
+    }
+
+    var host = USE_TEST_SERVER ? 'http://192.168.88.8:8080' : SERVER_ORIGIN
+
+    return fetch(host + '/create_mix?data=' + JSON.stringify(payload))
+        .then(function (resp) { return resp.json() })
+}
+
 function openResultScreen(data, imgObject) {
+    answerBtn = document.querySelector('#resultScreen #answerBtn')
+    answerBtn.classList.remove('answerIsVisible')
+
     var pinchZoom
     var destroyed = false
 
@@ -682,22 +924,6 @@ function openResultScreen(data, imgObject) {
     var canvas = document.createElement('canvas')
     body.appendChild(canvas)
 
-    var answerIsVisible = false
-    var onAnswerClick = function () {
-        answerIsVisible = !answerIsVisible
-        if (answerIsVisible) {
-            answerBtn.classList.add('answerIsVisible')
-        } else {
-            answerBtn.classList.remove('answerIsVisible')
-        }
-    }
-    answerBtn.addEventListener('click', onAnswerClick)
-
-    var onShareClick = function () {
-        shareResult(data, 'tryingToShare')
-    }
-    shareBtn.addEventListener('click', onShareClick)
-
     var removeTipsFunc
 
     setTimeout(function () {
@@ -705,126 +931,104 @@ function openResultScreen(data, imgObject) {
             return
         }
 
-        pinchZoom = new PinchZoomCanvas({
+        pinchZoom = activateZoomCanvas({
             canvas: canvas,
-            path: data.url,
-            imgObject: imgObject,
-            momentum: true,
-            onZoom: function () {
-                showZoomTip = false
-
-                if (removeTipsFunc) {
-                    removeTipsFunc()
-                    removeTipsFunc = undefined
-                }
-            },
-            onRender: function () {
-                if (answerIsVisible && pinchZoom) {
-                    var dx = pinchZoom.position.x
-                    var dy = pinchZoom.position.y
-                    var dw = pinchZoom.scale.x * pinchZoom.imgTexture.width
-                    var dh = pinchZoom.scale.y * pinchZoom.imgTexture.height
-                    pinchZoom.context.fillStyle = 'rgba(255, 255, 255, 0.6)'
-                    pinchZoom.context.fillRect(dx, dy, dw, dh)
-
-                    data.bboxs.forEach(function (bbox) {
-                        var x = bbox[0]
-                        var y = bbox[1]
-                        var w = bbox[2] - x
-                        var h = bbox[3] - y
-                        var bdx = dx + x * pinchZoom.scale.x
-                        var bdy = dy + y * pinchZoom.scale.y
-                        var bdw = w * pinchZoom.scale.x
-                        var bdh = h * pinchZoom.scale.y
-                        pinchZoom.context.drawImage(pinchZoom.imgTexture, x, y, w, h, bdx, bdy, bdw, bdh)
-                        pinchZoom.context.lineWidth = 2.5 * pinchZoom.scale.x
-                        pinchZoom.context.strokeStyle = '#2a79ff'
-                        pinchZoom.context.roundRect(bdx, bdy, bdw, bdh, 2 * pinchZoom.scale.x).stroke()
-                    })
-                }
-            }
-        })
-
-        setTimeout(function () {
-            canvas.style.opacity = '1'
-
-            if (showZoomTip) {
-                var arrowLeft = new Image()
-                arrowLeft.classList.add('leftArrowTip')
-                arrowLeft.src = '/static/img/arrow-long-left.svg'
-                arrowLeft.style.bottom = (pinchZoom.initPosition.y / 2 - 14) + 'px'
-
-                var arrowRight = new Image()
-                arrowRight.classList.add('rightArrowTip')
-                arrowRight.src = '/static/img/arrow-long-left.svg'
-                arrowRight.style.top = (pinchZoom.initPosition.y / 2 - 13) + 'px'
-
-                body.appendChild(arrowLeft)
-                body.appendChild(arrowRight)
-
-                removeTipsFunc = function () {
-                    body.removeChild(arrowLeft)
-                    body.removeChild(arrowRight)
-                }
-            }
-
-            /*if (data.bboxs && data.bboxs.length && pinchZoom) {
-                var bbox = data.bboxs[0]
-                var x = bbox[0]
-                var y = bbox[1]
-                var w = bbox[2] - x
-                var h = bbox[3] - y
-                var cx = x + w / 2
-                var cy = y + h / 2
-
-                var touchX = pinchZoom.initialScale * cx / 2 + pinchZoom.initPosition.x / 2
-                var touchY = pinchZoom.initialScale * cy / 2 + pinchZoom.initPosition.y / 2
-
-                var dx = pinchZoom.initialScale * w / 2
-                var dy = pinchZoom.initialScale * h / 2
-
-                var icx = pinchZoom.imgTexture.width / 2
-                var icy = pinchZoom.imgTexture.height / 2
-                touchX += cx > icx ? dx : -dx
-                touchY += cy > icy ? dy : -dy
-
-                var counter = 0
-                var animate = function () {
-                    if (pinchZoom) {
-                        pinchZoom.lastTouchTime  = null;
-                        pinchZoom.lastTouchPageX = 0;
-                        pinchZoom.zoom(3, touchX, touchY)
-                        pinchZoom._destroyImpetus();
-                        pinchZoom._createImpetus();
-                        if (counter < 10) {
-                            counter++
-                            requestAnimationFrame(animate)
-                        } else {
-                            onAnswerClick()
-                        }
-                    }
-                }
-
-                setTimeout(function () {
-                    requestAnimationFrame(animate)
-                }, 200)
-            }*/
-
-        }, 100)
+            imgObject: imgObject
+        }, body)
     }, 200)
 
     resultWasShared = false
     pushScreen('resultScreen', function () {
         LAST_DATA = undefined
         destroyed = true
-        answerBtn.classList.remove('answerIsVisible')
-        answerBtn.removeEventListener('click', onAnswerClick)
-        shareBtn.removeEventListener('click', onShareClick)
         if (pinchZoom) {
             pinchZoom.destroy()
             pinchZoom = undefined
         }
     })
+}
+
+function activateZoomCanvas(params, body) {
+    var removeTipsFunc
+
+    var pinchZoom = new PinchZoomCanvas({
+        canvas: params.canvas,
+        path: LAST_DATA.url,
+        imgObject: params.imgObject,
+        momentum: true,
+        onZoom: function () {
+            showZoomTip = false
+
+            if (removeTipsFunc) {
+                removeTipsFunc()
+                removeTipsFunc = undefined
+            }
+        },
+        onRender: function () {
+            if (answerIsVisible && pinchZoom) {
+                var dx = pinchZoom.position.x
+                var dy = pinchZoom.position.y
+                var dw = pinchZoom.scale.x * pinchZoom.imgTexture.width
+                var dh = pinchZoom.scale.y * pinchZoom.imgTexture.height
+                pinchZoom.context.fillStyle = 'rgba(255, 255, 255, 0.6)'
+                pinchZoom.context.fillRect(dx, dy, dw, dh)
+
+                LAST_DATA.bboxs.forEach(function (bbox) {
+                    var x = bbox[0]
+                    var y = bbox[1]
+                    var w = bbox[2] - x
+                    var h = bbox[3] - y
+                    var bdx = dx + x * pinchZoom.scale.x
+                    var bdy = dy + y * pinchZoom.scale.y
+                    var bdw = w * pinchZoom.scale.x
+                    var bdh = h * pinchZoom.scale.y
+                    pinchZoom.context.drawImage(pinchZoom.imgTexture, x, y, w, h, bdx, bdy, bdw, bdh)
+                    pinchZoom.context.lineWidth = 2.5 * pinchZoom.scale.x
+                    pinchZoom.context.strokeStyle = '#2a79ff'
+                    pinchZoom.context.roundRect(bdx, bdy, bdw, bdh, 2 * pinchZoom.scale.x).stroke()
+                })
+            }
+        }
+    })
+
+    setTimeout(function () {
+        params.canvas.style.opacity = '1'
+
+        if (showZoomTip) {
+            var arrowLeft = new Image()
+            arrowLeft.classList.add('leftArrowTip')
+            arrowLeft.src = '/static/img/arrow-long-left.svg'
+            arrowLeft.style.bottom = (pinchZoom.initPosition.y / 2 - 14) + 'px'
+
+            var arrowRight = new Image()
+            arrowRight.classList.add('rightArrowTip')
+            arrowRight.src = '/static/img/arrow-long-left.svg'
+            arrowRight.style.top = (pinchZoom.initPosition.y / 2 - 13) + 'px'
+
+            body.appendChild(arrowLeft)
+            body.appendChild(arrowRight)
+
+            removeTipsFunc = function () {
+                body.removeChild(arrowLeft)
+                body.removeChild(arrowRight)
+            }
+        }
+    }, 100)
+
+    return pinchZoom
+}
+
+function onShareButtonClick() {
+    shareResult(LAST_DATA, 'tryingToShare')
+}
+
+function onAnswerClick() {
+    answerIsVisible = !answerIsVisible
+    if (answerIsVisible) {
+        answerBtn.classList.add('answerIsVisible')
+    } else {
+        answerBtn.classList.remove('answerIsVisible')
+    }
 }
 
 function shareResult(data, eventName) {
@@ -900,7 +1104,7 @@ function safeExec(callback, defaultValue) {
     }
 }
 
-function showAlert(title, description, buttons) {
+function showAlert(title, description, buttons, onClose) {
     var closeAlert
     var titleDiv = document.createElement('div')
     titleDiv.classList.add('geneAlertTitle')
@@ -913,6 +1117,9 @@ function showAlert(title, description, buttons) {
     var closeAlert = function () {
         overlay.style.opacity = '0'
         setTimeout(function () {
+            if (onClose) {
+                onClose()
+            }
             document.body.removeChild(overlay)
         }, 100)
     }
