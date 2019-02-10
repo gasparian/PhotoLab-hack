@@ -310,10 +310,10 @@ def insert_face(result, CROWD, scale):
 
         x, y, w, h = dst_shape
         result_bboxs.append([
-            int(x*scale), 
-            int(y*scale), 
-            int((x+w)*scale), 
-            int((y+h)*scale)])
+            x, 
+            y, 
+            x+w, 
+            y+h])
         CROWD[y:y+h, x:x+w] = output
     
     return CROWD, result_bboxs
