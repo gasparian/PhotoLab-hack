@@ -395,16 +395,6 @@ MAX_POINTS = 42
 BUCKET_NAME = "storage.ws.pho.to"
 PATH = "photohack/gene"
 
-PHRASES = [
-    "Hmm ... I don't remember that you've ever allowed yourself to do that!",
-    "I've never noticed this before...",
-    "How did you get there?",
-    "How did you get into this company?",
-    "Who is that with you?",
-    "Can you explain it?!",
-    "What are you doing over there?"
-]
-
 #load trained models
 # face landmarks
 PREDICTOR = dlib.shape_predictor('./models/shape_predictor_68_face_landmarks.dat')
@@ -465,7 +455,7 @@ def create_mix():
 
         else:
             responses["bboxs"] = result_bboxs
-            responses["title"] = np.random.choice(PHRASES)
+            responses["title"] = "Wow! Don't you recognize anyone here?"
 
             #crowd = cv2.resize(crowd, old_shape, Image.LANCZOS)
             retval, buff = cv2.imencode(file_type, crowd)
