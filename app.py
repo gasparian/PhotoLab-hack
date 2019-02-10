@@ -467,7 +467,7 @@ def create_mix():
             responses["bboxs"] = result_bboxs
             responses["title"] = np.random.choice(PHRASES)
 
-            crowd = cv2.resize(crowd, old_shape, Image.LANCZOS)
+            #crowd = cv2.resize(crowd, old_shape, Image.LANCZOS)
             retval, buff = cv2.imencode(file_type, crowd)
 
             s3 = boto3.client('s3')
