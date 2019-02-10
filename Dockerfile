@@ -110,6 +110,6 @@ COPY ./start.sh /root/photolab_hack/
 COPY ./utils.py /root/photolab_hack/
 
 ENTRYPOINT ["bash"]
-#CMD ["/root/photolab_hack/start.sh"]
+CMD ["/root/photolab_hack/start.sh"]
 
 EXPOSE 8000
