@@ -1180,10 +1180,10 @@ function generateCrowdPhotosList() {
     var crowdList = document.querySelector('.crowdList')
     CROWD_PHOTOS_LIST.forEach(function (photo) {
         var img = new Image()
-        img.src = photo.url
+        img.src = photo.url + '?rnd=2'
         img.addEventListener('click', function () {
             crowdPhoto = createPhotoObject({
-                url: photo.url
+                url: photo.url + '?rnd=2'
             })
             yaReachGoal('crowdPhoto' + photo.id)
             openCookingScreen()
