@@ -46,10 +46,10 @@ CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
 var SERVER_ORIGIN = 'http://gene.ws.pho.to'
 
 var IS_IOS = !!getParameterByName('vicman_unified_id')
-var IS_PRODUCTION_WRAPPER = IS_IOS || !!(getParameterByName('aid') || '')
-var USE_TEST_SERVER = !IS_PRODUCTION_WRAPPER || false
+// TODO: not stable naher
+var IS_PRODUCTION_WRAPPER = true// IS_IOS || !!(getParameterByName('aid') || '')
+var USE_TEST_SERVER = false// !IS_PRODUCTION_WRAPPER || false
 var COUNTRY_SHORT_NAME = (getParameterByName('country') || '').trim().toLowerCase()
-var IS_USA = COUNTRY_SHORT_NAME === 'us' || COUNTRY_SHORT_NAME === 'um'
 var IS_INDIA = IS_IOS && COUNTRY_SHORT_NAME === 'in'
 
 var CROWD_PHOTOS_LIST
@@ -675,9 +675,7 @@ function selectNativePhoto(onPhotoSelected) {
             : 'https://1.bp.blogspot.com/-9QM7ciGXRkQ/V1hsB-wNLBI/AAAAAAAAMoA/eYbSHs00PTAjrI4QAmvYAIGCUe1AuRAnwCLcB/s1600/bryan_cranston_0095.jpg'
 
         var photo = createPhotoObject({
-            url: url/*,
-            crop: [0, 0.4, 1, 0.9],
-            rotation: 180*/
+            url: url
         })
         onPhotoSelected(photo)
         return

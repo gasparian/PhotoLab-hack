@@ -444,7 +444,8 @@ body, html {
     height: 48px;
     padding: 0 20px;
     margin-bottom: 10px;
-    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.24);
+    -webkit-box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.24);
+            box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.24);
     -webkit-box-sizing: border-box;
             box-sizing: border-box;
     -webkit-box-pack: center;
