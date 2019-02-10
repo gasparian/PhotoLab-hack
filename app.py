@@ -273,7 +273,7 @@ def insert_face(result, CROWD, scale):
 
         # 3d warp if face is big enough
         WARP_2D = True
-        if (h / CROWD.shape[0]) >= .3:
+        if (h / CROWD.shape[0]) >= FACE_FRAC_3D:
             WARP_2D = False
 
         ### Warp Image
@@ -388,6 +388,7 @@ def prepare_response(responses):
 MAX_SIZE_SELFIE = 400 
 MAX_SIZE_CROWD = 1200
 #WARP_2D = True
+FACE_FRAC_3d = .3
 CORRECT_COLOR = True
 MAX_POINTS = 42
 
