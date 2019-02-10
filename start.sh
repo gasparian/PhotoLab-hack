@@ -1,6 +1,6 @@
 #!/bin/bash
 gunicorn --bind=0.0.0.0:8000 \
-         --workers=10 \
+         --workers=17 \
          -k gthread \
          --thread=2 \
          --timeout 30 \
