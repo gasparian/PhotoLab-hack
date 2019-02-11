@@ -567,11 +567,12 @@ function updateShortUI() {
 /*** SHORT FLOW ***/
 
 function openFacesScreen() {
-    if (Math.random() > 0.5) {
+    openLongFacesScreen()
+    /*if (Math.random() > 0.5) {
         openLongFacesScreen()
     } else {
         openShortFacesScreen()
-    }
+    }*/
 }
 
 function openShortFacesScreen() {
