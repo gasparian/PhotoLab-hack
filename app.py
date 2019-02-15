@@ -25,7 +25,6 @@ os.environ['AWS_PROFILE'] = "photo-hack-gene"
 
 from face_swap import warp_image_2d, warp_image_3d, mask_from_points, \
                       apply_mask, correct_colours, transformation_from_points
-#from utils import *
 
 def convertDtypeRec(dd):
     dtype = type(dd)
