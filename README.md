@@ -1,5 +1,12 @@
-# photolab_hack
+# photolab_hack  
 
+<img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/photolab_hack_emb.jpg" height=500>  
+
+## UI  
+<img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/onboarding_1.jpg" height=500> <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/inputs.jpg" height=500>  
+<img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/pre_mix.jpg" height=500> <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/mixed.jpg" height=500>  
+
+## Deploying    
 1. Install docker.
 2. Pull last image version to your machine from [dockerhub](https://cloud.docker.com/repository/docker/gasparjan/photolab_hack/general):
  ```
