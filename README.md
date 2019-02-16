@@ -19,15 +19,22 @@ Here is the algorithm:
     - use only affine transform on "source" face mask (*aka* warp_2d in code);  
     - apply [delaunay triangulation](https://en.wikipedia.org/wiki/Delaunay_triangulation) on "source" and destination faces landmarks and warp each triangle of source face (*aka* warp_3d in code). This approach leads to more accurate facial expressions transfer;  
     
+    <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/1_wh1N-kogDMaZYS17lqyqeQ.jpeg" height=250>  
+    
     In our case, simple heuristic works just fine: do the triangulation only if detected face bbox is big enough to fill `k <= bbox_h/img_h` of image height (where `k` is a given value).  
- 
- <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/1_wh1N-kogDMaZYS17lqyqeQ.jpeg" height=300>  
 
 ## Example  
-<img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/onboarding_1.jpg" height=500> <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/inputs.jpg" height=500> <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/pre_mix.jpg" height=500>  
-<img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/mixed.jpg" height=500>  
+User start from choosing couple photos of him and / or his friend(s) and the photo where input faces should be placed:  
 
-## Deploying our solution  
+<img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/onboarding_1.jpg" height=500> <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/inputs.jpg" height=500> <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/pre_mix.jpg" height=500>  
+
+And after **~2 sec.** he gets the result and can share it on various social platforms:  
+
+<img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/mixed_zoomed.jpg" height=500>  
+
+As you can see, we really swapped the most similar faces and did it pretty well.
+
+## Deploying service  
 1. Install docker.
 2. Pull last image version to your machine from [dockerhub](https://cloud.docker.com/repository/docker/gasparjan/photolab_hack/general):
  ```
