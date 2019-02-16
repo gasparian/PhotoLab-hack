@@ -1,4 +1,6 @@
 # Photolab_hack  
+***This solution has become one of 4 winners of the hackathon 1st stage.***
+
 ## Goal  
 Create potentially viral app for the [Photolab](https://photolab.me/) audience.  
 
