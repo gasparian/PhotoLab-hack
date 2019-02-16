@@ -36,7 +36,11 @@ And after **~2 sec.** he gets the result and can share it on various social plat
 
 <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/mixed_zoomed.jpg" height=500>  
 
-As you can see, we really swapped the most similar faces and did it pretty well.
+As you can see, we swapped the most similar faces and did it pretty well.  
+Check out more examples with me and Elon:  
+<img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/Screenshot_20190217-011614.png" height=500> <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/Screenshot_20190217-011638.png" height=500> <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/Screenshot_20190217-011658.png" height=500>  
+<img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/Screenshot_20190217-011716.png" height=500> <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/Screenshot_20190217-011759.png" height=500> <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/Screenshot_20190217-011819.png" height=500>  
+<img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/Screenshot_20190217-011848.png" height=500> <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/Screenshot_20190217-011921.png" height=500> <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/Screenshot_20190217-011934.png" height=500>  
 
 ## Deploying service  
 1. Install docker.
