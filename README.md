@@ -24,6 +24,7 @@ Here is the algorithm:
     <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/1_wh1N-kogDMaZYS17lqyqeQ.jpeg" height=250>  
     
     In our case, simple heuristic works just fine: do the triangulation only if detected face bbox is big enough to fill `k <= bbox_h/img_h` of image height (where `k` is a given value).  
+    In order to speed up the inference, detected faces has been separated in `n_jobs` groups to make similarity calculation and face swapping in `n_jobs` parallel independent processes (where `n_jobs` is, again, a given value).  
 
 ## Example  
 User start from choosing couple photos of him and / or his friend(s) and the photo where input faces should be placed:  
