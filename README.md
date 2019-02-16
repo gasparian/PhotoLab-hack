@@ -5,7 +5,7 @@
 Create potentially viral app for the [Photolab](https://photolab.me/) audience.  
 
 ## Idea  
-So we decided to create something fairly simple: what if we let users swap faces from several input photos with arbitrary number of people to another photo with some crowd, in fully unsupervised way. The result is then posted on facebook and can be used to challenge their friends to find someone familiar in the photos.  
+So we decided to create something fairly simple: what if we let users swap faces from several input photos with arbitrary number of people to another photo with some crowd, in fully unsupervised way. The result is then posted on facebook and can be used to challenge their friends to find someone familiar in the mixed photos.  
 Our web service must be easy to use, able to create high-quality swaps and make it fast.
 
 ## Implementation  
