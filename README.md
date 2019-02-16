@@ -20,7 +20,7 @@ Here is the algorithm:
  4. Finally do the [face-swapping](https://github.com/wuhuikai/FaceSwap)!   
     Basically we can go two ways:  
     - use only affine transform on "source" face mask (*aka* warp_2d in code);  
-    - apply [delaunay triangulation](https://en.wikipedia.org/wiki/Delaunay_triangulation) on "source" and destination faces landmarks and warp each triangle of source face (*aka* warp_3d in code). This approach leads to more accurate facial expressions transfer;  
+    - apply [delaunay triangulation](https://en.wikipedia.org/wiki/Delaunay_triangulation) on "source" and destination faces landmarks and warp each triangle on source face (*aka* warp_3d in code). This approach leads to more accurate facial expressions transfer;  
     
     <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/1_wh1N-kogDMaZYS17lqyqeQ.jpeg" height=250>  
     
