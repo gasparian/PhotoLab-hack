@@ -12,7 +12,7 @@ Our web service must be easy to use, able to create high-quality swaps and make 
 ## Implementation  
 Here is the algorithm:  
  1. Find all faces on both input and output photos. Let's use detector, [based on HOG descriptors](http://dlib.net/face_detector.py.html) for that.  
- 2. Extract features from detected faces with [pretrained model](http://dlib.net/face_recognition.py.html) (any "metric learning" model for face-recognition can be used, like facenet). For instance, we map every face to the 128D space. Then we measure L2 distances in this face-features space, between every face in the input photo and faces in the destination photo. And finaly, for every "input face" we must find "nearest neighbour" from the distanation photo. Here is the illustration:  
+ 2. Extract features from detected faces with [pretrained model](http://dlib.net/face_recognition.py.html) (any "metric learning" model for face-recognition can be used, like [facenet](https://arxiv.org/pdf/1503.03832.pdf)). For instance, we map every face to the 128D space. Then we measure L2 distances in this face-features space, between every face in the input photo and faces in the destination photo. And finaly, for every "input face" we must find "nearest neighbour" from the distanation photo. Here is the illustration:  
  
 <img src="https://github.com/gasparian/photolab_hack/blob/master/imgs/photolab_hack_emb.jpg" height=450>  
 
