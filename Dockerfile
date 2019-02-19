@@ -107,7 +107,6 @@ COPY ./build_docker.sh /root/photolab_hack/
 COPY ./face_swap.py /root/photolab_hack/
 COPY ./run_docker.sh /root/photolab_hack/
 COPY ./start.sh /root/photolab_hack/
-COPY ./utils.py /root/photolab_hack/
 
 ENTRYPOINT ["bash"]
 CMD ["/root/photolab_hack/start.sh"]
