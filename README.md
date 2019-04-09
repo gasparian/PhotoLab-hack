@@ -61,8 +61,8 @@ Check out more examples with me and Elon:
  ```
  [%USER_NAME%]
  
- aws_access_key_id = AAAAAAAAAAAAAAAAAAA
- aws_secret_access_key = RRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+ aws_access_key_id = ""
+ aws_secret_access_key = ""
  ```
 4. Run docker:
  ```
