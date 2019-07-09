@@ -67,7 +67,7 @@ def img_transforms(img, transforms):
             ]
     return img
 
-def open_img(data, biggest=400, flip_colors=False):
+def open_img(data, biggest=400, flip_colors=True):
 
     response = requests.get(data["url"])
     with BytesIO(response.content) as stream:
@@ -90,10 +90,14 @@ def open_img(data, biggest=400, flip_colors=False):
             pass
 
         # convert to opencv format
-        cv_image = np.array(image.convert('RGB'))
+        cv_image = np.array(image.convert('RGBA'))
         image.close()
 
-    cv_image = cv_image[:, :, ::-1].copy()
+
+    if len(np.unique(cv_image[:, :, -1:])) > 1:
+        cv_image = cv_image[:, :, :-1] * cv_image[:, :, -1:]
+    else:
+        cv_image = cv_image[:, :, :-1]
     if flip_colors:
         cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
 
